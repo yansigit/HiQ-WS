@@ -1,1 +1,8 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+## HiQ-RMS
+
+This software is for monitoring vessels status.
+
+## Stack
+
+- Next.js
+- Graphql
