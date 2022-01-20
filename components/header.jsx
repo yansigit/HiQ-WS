@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Logo from "../public/logo.png"
+import styles from './header.module.css'
 
 export default function Header() {
     return (
         <header>
-            <div id="top_header" className="px-3 py-2 text-white">
+            <div className={`px-3 py-2 text-white ${styles.top_header}`}>
                 <div className="container">
                     <div
                         className="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
@@ -48,13 +49,6 @@ export default function Header() {
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-              #top_header {
-                background: linear-gradient(to right, #002975, 80%, #aa0154);
-              }
-            `}
-            </style>
         </header>
     )
 }

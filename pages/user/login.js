@@ -1,20 +1,17 @@
-import LoginImage from "../../public/image_login.png"
 import IconLogin from "../../public/icon_login.png"
-import HWLogo from "../../public/logo_login.png"
 import Image from "next/image";
-import {useEffect} from "react";
 import styles from "./login.module.css"
 import Link from "next/link";
+import {gql} from "@apollo/client";
+import client from '../apollo-client'
 
-export default function Login() {
-    useEffect(() => {
-        console.log(LoginImage);
-    }, []);
+export default function Login({ countries }) {
+
     return (
         <body className={`d-flex align-content-center justify-content-center ${styles.body}`}>
             <div className="container align-self-center">
             <header className="row justify-content-center p-3">
-                <Image src={HWLogo} />
+                {/*<Image src={HWLogo} />*/}
             </header>
             <main className="row border border-dark">
                 {/* 이미지 */}
@@ -40,4 +37,24 @@ export default function Login() {
             </div>
         </body>
     )
+}
+
+export async function getServerSideProps() {
+    const { data } = await client.query({
+        query: gql`
+            query Countries {
+                countries {
+                    code
+                    name
+                    emoji
+                }
+            }
+        `,
+    });
+
+    return {
+        props: {
+            countries: data.countries.slice(0, 4)
+        }
+    }
 }

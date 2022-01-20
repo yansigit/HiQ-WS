@@ -125,7 +125,7 @@ export default function Home() {
                 {/* 테이블 */}
                 <div className={`card shadow-sm ${!isTable ? "d-none" : null}`}>
                     <div className="card-header fw-bold text-center">
-                        Current SHIP-A Status Table
+                        Current {ship} Status Table
                     </div>
                     <div className="card-body">
                         <table className="table table-striped table-hover">
