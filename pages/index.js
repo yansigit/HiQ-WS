@@ -78,7 +78,7 @@ export default function Home() {
                         </button>
                         <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
                             {[...Array(24).keys()].map(e => (
-                                <li><small key={`time_item_${e + 1}`} className="dropdown-item" onClick={() => setStartTime(e+1)}>{e + 1}:00</small></li>
+                                <li key={`start_time_item_${e + 1}`}><small className="dropdown-item" onClick={() => setStartTime(e+1)}>{e + 1}:00</small></li>
                             ))}
                         </ul>
                     </div>
@@ -91,7 +91,7 @@ export default function Home() {
                         </button>
                         <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
                             {[...Array(24).keys()].map(e => (
-                                <li><small key={`time_item_${e + 1}`} className="dropdown-item" onClick={() => setEndTime(e+1)}>{e + 1}:00</small></li>
+                                <li key={`end_time_item_${e + 1}`}><small className="dropdown-item" onClick={() => setEndTime(e+1)}>{e + 1}:00</small></li>
                             ))}
                         </ul>
                     </div>
