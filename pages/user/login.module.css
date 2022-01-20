@@ -1,0 +1,18 @@
+.body {
+    width: 800px;
+    margin: 0 auto;
+}
+
+.image_section {
+    background: url('/image_login.png') no-repeat;
+    background-size: cover;
+}
+
+.typelogo {
+    border-radius: 50%;
+    border: 1px solid #36425c;
+    height: 96px;
+    width: 96px;
+    margin: 40px auto 30px;
+    text-align: center;
+}
