@@ -1,18 +1,21 @@
+import {generateAccessToken, generateRefreshToken} from "../../../lib/token";
+
+const mockUp = [
+    {
+        id: "test",
+        password: "test",
+        info: "secret"
+    }
+]
+
 export const resolvers = {
     Query: {
-        getUsers: async () => {
-            const { body } = await fetch({
-                url: "https://api.github.com/users",
-                method: "GET"
-            })
-            console.log(body)
-        },
-        getUser: async (_, args) => {
-            const { body } = await fetch({
-                url: `https://api.github.com/users/${args.name}`,
-                method: "GET"
-            })
-            console.log(body)
+        getUser: async (_, {userId, password}) => {
+            const result = mockUp.find(e => e.id === userId && e.password === password)
+            if (!result) {
+                return ["invalid user info"]
+            }
+            return [generateAccessToken(userId), generateRefreshToken(userId)]
         }
     }
 }
