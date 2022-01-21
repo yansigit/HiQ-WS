@@ -1,4 +1,4 @@
-import {generateAccessToken, generateRefreshToken} from "../../../lib/token";
+import {generateAccessToken, generateRefreshToken, refreshAccessToken} from "../../../lib/token";
 
 const mockUp = [
     {
@@ -10,12 +10,16 @@ const mockUp = [
 
 export const resolvers = {
     Query: {
-        getUser: async (_, {userId, password}) => {
+        login: async (_, {userId, password}) => {
             const result = mockUp.find(e => e.id === userId && e.password === password)
             if (!result) {
                 return ["invalid user info"]
             }
             return [generateAccessToken(userId), generateRefreshToken(userId)]
+        },
+        refresh: async (_, {rToken}) => {
+            console.log(`refreshTken: ${rToken}`)
+            return refreshAccessToken(rToken)
         }
     }
 }

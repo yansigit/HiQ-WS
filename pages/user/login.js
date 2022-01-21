@@ -4,8 +4,29 @@ import styles from "./login.module.css"
 import Link from "next/link";
 import {gql} from "@apollo/client";
 import client from '../apollo-client'
+import {useRef} from "react";
+import {useRouter} from "next/router";
 
-export default function Login({ countries }) {
+export default function Login() {
+    const [userID, userPW] = [useRef(), useRef()]
+    const router = useRouter()
+
+    async function login(userId, password) {
+        const { data: {login} } = await client.query({
+            query: gql`
+                query($userId: String!, $password: String!) {
+                    login(userId: $userId, password: $password)
+                }
+            `,
+            variables: {userId, password}
+        });
+
+        if (login.length < 2) {
+            alert("로그인에 실패하였습니다")
+            return;
+        }
+        await router.push("/")
+    }
 
     return (
         <body className={`d-flex align-content-center justify-content-center ${styles.body}`}>
@@ -23,11 +44,9 @@ export default function Login({ countries }) {
                         <Image src={IconLogin} />
                     </div>
                     <div className="input-group">
-                    <input type="text" className="rounded-0 w-100 m-1 border" />
-                    <input type="password" className="rounded-0 w-100 m-1 border" />
-                    <Link href="/">
-                        <button className="btn btn-danger text-white rounded-0 w-100 m-1">로그인</button>
-                    </Link>
+                    <input type="text" className="rounded-0 w-100 m-1 border" ref={userID}/>
+                    <input type="password" className="rounded-0 w-100 m-1 border" ref={userPW} />
+                    <button className="btn btn-danger text-white rounded-0 w-100 m-1" onClick={() => login(userID.current.value, userPW.current.value)}>로그인</button>
                     </div>
                 </section>
             </main>
@@ -37,24 +56,4 @@ export default function Login({ countries }) {
             </div>
         </body>
     )
-}
-
-export async function getServerSideProps() {
-    const { data } = await client.query({
-        query: gql`
-            query Countries {
-                countries {
-                    code
-                    name
-                    emoji
-                }
-            }
-        `,
-    });
-
-    return {
-        props: {
-            countries: data.countries.slice(0, 4)
-        }
-    }
 }

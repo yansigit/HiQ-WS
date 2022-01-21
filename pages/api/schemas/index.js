@@ -8,6 +8,7 @@ export const typeDefs = gql`
     }
     
     type Query {
-        getUser(userId: String!, password: String!): [String]
+        login(userId: String!, password: String!): [String]
+        refresh(rToken: String!): String
     }
 `
