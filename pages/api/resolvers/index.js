@@ -18,7 +18,6 @@ export const resolvers = {
             return [generateAccessToken(userId), generateRefreshToken(userId)]
         },
         refresh: async (_, {rToken}) => {
-            console.log(`refreshTken: ${rToken}`)
             return refreshAccessToken(rToken)
         }
     }

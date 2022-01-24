@@ -4,9 +4,10 @@ import 'chart.js/auto'
 import {Chart} from "react-chartjs-2";
 import styles from './index.module.css'
 import utilStyles from '../styles/utils.module.css'
-import {forwardRef, useState} from "react";
+import {forwardRef, useEffect, useState} from "react";
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
+import {useRouter} from "next/router";
 
 export default function Home() {
     const COLORS = ['#4c4cdb', '#9371e0', '#e071a2']
@@ -20,6 +21,15 @@ export default function Home() {
             {value}
         </button>
     ));
+    const router = useRouter()
+
+    useEffect(async () => {
+        if (!sessionStorage.getItem("accessToken")) {
+            alert("로그인이 필요합니다")
+            await router.replace("/user/login")
+        }
+
+    }, [])
 
     const GenerateTableRows = () => {
         return [...Array(20).keys()].map(e => {
@@ -149,4 +159,12 @@ export default function Home() {
             </div>
         </Layout>
     )
+}
+
+export async function getServerSideProps(context) {
+    console.log(Object.keys(context.req.headers))
+    // console.log(context.req)
+    return {
+        props: {test: '123'}
+    }
 }

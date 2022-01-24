@@ -1,8 +1,13 @@
-import { ApolloServer, gql } from 'apollo-server-micro'
+import {ApolloServer, AuthenticationError, gql} from 'apollo-server-micro'
 import { resolvers } from "./resolvers";
 import { typeDefs } from "./schemas";
 
-const apolloServer = new ApolloServer({ typeDefs, resolvers })
+const apolloServer = new ApolloServer({ typeDefs, resolvers, context: ({ req }) => {
+        console.log(req)
+        if (!req.headers.authorization)
+            throw new AuthenticationError("missing token")
+    }
+})
 
 const startServer = apolloServer.start()
 

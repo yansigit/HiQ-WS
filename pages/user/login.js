@@ -1,31 +1,27 @@
 import IconLogin from "../../public/icon_login.png"
 import Image from "next/image";
 import styles from "./login.module.css"
-import Link from "next/link";
-import {gql} from "@apollo/client";
-import client from '../apollo-client'
 import {useRef} from "react";
 import {useRouter} from "next/router";
+import {useForm} from "react-hook-form";
+import {inspectToken} from "../../lib/token";
 
 export default function Login() {
     const [userID, userPW] = [useRef(), useRef()]
     const router = useRouter()
+    const { handleSubmit } = useForm()
 
-    async function login(userId, password) {
-        const { data: {login} } = await client.query({
-            query: gql`
-                query($userId: String!, $password: String!) {
-                    login(userId: $userId, password: $password)
-                }
-            `,
-            variables: {userId, password}
-        });
+    async function login(e) {
+        const {success, error } = (await fetch('/api/login', {
+            method: 'POST',
+            body: JSON.stringify({id: userID.current.value, password: userPW.current.value})
+        })).json()
 
-        if (login.length < 2) {
-            alert("로그인에 실패하였습니다")
-            return;
+        if (success) {
+            await router.push("/")
+        } else {
+            alert(error)
         }
-        await router.push("/")
     }
 
     return (
@@ -39,16 +35,16 @@ export default function Login() {
                 <section className={`col p-0 ${styles.image_section}`}>
                 </section>
                 {/* 로그인 폼 */}
-                <section className="col p-5 d-flex flex-column justify-content-center">
+                <form onSubmit={handleSubmit(login)} className="col p-5 d-flex flex-column justify-content-center">
                     <div className={`${styles.typelogo} row justify-content-center align-items-center`}>
                         <Image src={IconLogin} />
                     </div>
                     <div className="input-group">
-                    <input type="text" className="rounded-0 w-100 m-1 border" ref={userID}/>
-                    <input type="password" className="rounded-0 w-100 m-1 border" ref={userPW} />
+                    <input type="text" name="userID" className="rounded-0 w-100 m-1 border" ref={userID}/>
+                    <input type="password" name="userPW" className="rounded-0 w-100 m-1 border" ref={userPW} />
                     <button className="btn btn-danger text-white rounded-0 w-100 m-1" onClick={() => login(userID.current.value, userPW.current.value)}>로그인</button>
                     </div>
-                </section>
+                </form>
             </main>
             <footer className="row justify-content-center p-3 bg-dark text-white text-center">
                 <small>Copyright © 2022. HYUNDAI WELDING Ltd. All rights Reserved.</small>
@@ -56,4 +52,11 @@ export default function Login() {
             </div>
         </body>
     )
+}
+
+export async function getServerSideProps({req: {cookies: {accessToken, refreshToken}}}) {
+    inspectToken(accessToken)
+    return {
+        props: {}
+    }
 }
