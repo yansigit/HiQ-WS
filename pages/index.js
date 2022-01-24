@@ -8,28 +8,33 @@ import {forwardRef, useEffect, useState} from "react";
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
 import {useRouter} from "next/router";
+import {inspectToken} from "../lib/token";
+import Link from "next/link";
+import Error from '../components/error'
 
-export default function Home() {
+export default function Home({redirectToLogin}) {
     const COLORS = ['#4c4cdb', '#9371e0', '#e071a2']
     const [ship, setShip] = useState('SHIP-A')
     const [startDate, setStartDate] = useState(new Date());
     const [startTime, setStartTime] = useState(0)
     const [endTime, setEndTime] = useState(24)
     const [isTable, setIsTable] = useState(true)
+
+    const router = useRouter()
+
+    if(redirectToLogin) {
+        const button = <Link href="/user/login">
+            <a className="btn btn-danger">로그인</a>
+        </Link>
+
+        return <Error title="오류" message="로그인이 필요한 페이지입니다" customTag={button} />
+    }
+
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-primary" onClick={onClick} ref={ref}>
             {value}
         </button>
     ));
-    const router = useRouter()
-
-    useEffect(async () => {
-        if (!sessionStorage.getItem("accessToken")) {
-            alert("로그인이 필요합니다")
-            await router.replace("/user/login")
-        }
-
-    }, [])
 
     const GenerateTableRows = () => {
         return [...Array(20).keys()].map(e => {
@@ -161,9 +166,15 @@ export default function Home() {
     )
 }
 
-export async function getServerSideProps(context) {
-    console.log(Object.keys(context.req.headers))
-    // console.log(context.req)
+export async function getServerSideProps({req: {cookies: {accessToken, refreshToken}}}) {
+    if (!accessToken) {
+        return {
+            props: {redirectToLogin: true}
+        }
+    }
+
+    inspectToken(accessToken)
+
     return {
         props: {test: '123'}
     }

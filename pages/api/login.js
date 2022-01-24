@@ -23,6 +23,7 @@ export default async function handler(req, res) {
             sameSite: "strict"
         })
         res.status(200).json({ success: true })
+        return
     }
 
     res.status(400).json({ error : "No User" })

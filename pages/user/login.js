@@ -1,18 +1,23 @@
 import IconLogin from "../../public/icon_login.png"
 import Image from "next/image";
 import styles from "./login.module.css"
-import {useRef} from "react";
+import {useEffect, useRef} from "react";
 import {useRouter} from "next/router";
 import {useForm} from "react-hook-form";
 import {inspectToken} from "../../lib/token";
 
-export default function Login() {
+export default function Login({redirectToDashboard}) {
     const [userID, userPW] = [useRef(), useRef()]
     const router = useRouter()
     const { handleSubmit } = useForm()
 
+    useEffect(async () => {
+        if (redirectToDashboard)
+            await router.replace("/")
+    }, [])
+
     async function login(e) {
-        const {success, error } = (await fetch('/api/login', {
+        const {success, error} = await (await fetch('/api/login', {
             method: 'POST',
             body: JSON.stringify({id: userID.current.value, password: userPW.current.value})
         })).json()
@@ -42,7 +47,7 @@ export default function Login() {
                     <div className="input-group">
                     <input type="text" name="userID" className="rounded-0 w-100 m-1 border" ref={userID}/>
                     <input type="password" name="userPW" className="rounded-0 w-100 m-1 border" ref={userPW} />
-                    <button className="btn btn-danger text-white rounded-0 w-100 m-1" onClick={() => login(userID.current.value, userPW.current.value)}>로그인</button>
+                    <button className="btn btn-danger text-white rounded-0 w-100 m-1">로그인</button>
                     </div>
                 </form>
             </main>
@@ -55,7 +60,15 @@ export default function Login() {
 }
 
 export async function getServerSideProps({req: {cookies: {accessToken, refreshToken}}}) {
-    inspectToken(accessToken)
+
+    // 이미 로그인되어 있다면 대시보드로 이동
+    if (accessToken) {
+        inspectToken(accessToken)
+        return {
+            props: {redirectToDashboard: true}
+        }
+    }
+
     return {
         props: {}
     }
