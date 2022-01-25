@@ -7,7 +7,6 @@ import utilStyles from '../styles/utils.module.css'
 import {forwardRef, useEffect, useState} from "react";
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
-import {useRouter} from "next/router";
 import {getUserFromToken, tokenMiddleWare} from "../lib/token";
 import Link from "next/link";
 import Error from '../components/error'
@@ -20,8 +19,6 @@ export default function Home({redirectToLogin, user}) {
     const [startTime, setStartTime] = useState(0)
     const [endTime, setEndTime] = useState(24)
     const [isTable, setIsTable] = useState(true)
-
-    const router = useRouter()
 
     if(redirectToLogin) {
         const button = <Link href="/user/login">
@@ -168,7 +165,6 @@ export default function Home({redirectToLogin, user}) {
 }
 
 export async function getServerSideProps({req, res}) {
-
     const {cookies: {accessToken, refreshToken}} = req
 
     if (!accessToken) {
@@ -178,9 +174,9 @@ export async function getServerSideProps({req, res}) {
     }
 
     const cookies = new Cookies(req, res)
-    const user = tokenMiddleWare(accessToken, refreshToken, cookies)
+    tokenMiddleWare(accessToken, refreshToken, cookies)
 
     return {
-        props: {user}
+        props: {user: getUserFromToken(accessToken)}
     }
 }
