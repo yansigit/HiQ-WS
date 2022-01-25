@@ -62,9 +62,10 @@ export default function Home({redirectToLogin, user}) {
         setGraphData(getGraphs)
     }, [ship, startDate, endDate, startTime, endTime])
 
-    const GenerateTableRows = () =>
-        graphData.map(e => {
-            return <tr>
+    const GenerateTableRows = () => {
+        let i = 1
+        return graphData.map(e => {
+            return <tr key={`tableRow${i++}`}>
                 <td>{e.HULLNUM}</td>
                 <td>{e.TIME}</td>
                 <td>10</td>
@@ -73,10 +74,11 @@ export default function Home({redirectToLogin, user}) {
                 <td>40</td>
                 <td>50</td>
             </tr>
-        })
+        });
+    }
 
     return (
-        <Layout user={user} home>
+        <Layout user={user}>
             <Head>
                 <title>{siteTitle}</title>
             </Head>
@@ -92,13 +94,13 @@ export default function Home({redirectToLogin, user}) {
                         </a>
                         <ul className="dropdown-menu" aria-labelledby="dropdownMenuLink">
                             <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('SHIP-A')
+                                setShip('1')
                             }}>SHIP-A</a></li>
                             <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('SHIP-B')
+                                setShip('2')
                             }}>SHIP-B</a></li>
                             <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('SHIP-C')
+                                setShip('2156')
                             }}>SHIP-C</a></li>
                         </ul>
                     </div>

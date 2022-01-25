@@ -5,7 +5,8 @@ import SettingIcon from '../public/setting.gif'
 export default function Sidebar({user: {company, name, position, ships}}) {
 
     const ShipList = ({ships}) => {
-        return ships.map(e => <a href="#" className="text-white">{e.name}</a>)
+        let i = 1
+        return ships.map(e => <a key={`shipList${i++}`} href="#" className="text-white">{e.name}</a>)
     }
 
     return (
