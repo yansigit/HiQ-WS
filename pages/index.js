@@ -11,42 +11,69 @@ import {getUserFromToken, tokenMiddleWare} from "../lib/token";
 import Link from "next/link";
 import Error from '../components/error'
 import Cookies from "cookies";
+import {gql} from "@apollo/client";
+import client from "./apollo-client";
 
 export default function Home({redirectToLogin, user}) {
     const COLORS = ['#4c4cdb', '#9371e0', '#e071a2']
     const [ship, setShip] = useState('SHIP-A')
     const [startDate, setStartDate] = useState(new Date());
+    const [endDate, setEndDate] = useState(new Date());
     const [startTime, setStartTime] = useState(0)
     const [endTime, setEndTime] = useState(24)
     const [isTable, setIsTable] = useState(true)
+    const [graphData, setGraphData] = useState([])
 
-    if(redirectToLogin) {
+    if (redirectToLogin) {
         const button = <Link href="/user/login">
             <a className="btn btn-danger">로그인</a>
         </Link>
 
-        return <Error title="오류" message="로그인이 필요한 페이지입니다" customTag={button} />
+        return <Error title="오류" message="로그인이 필요한 페이지입니다" customTag={button}/>
     }
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-primary" onClick={onClick} ref={ref}>
             {value}
         </button>
-    ));
+    ))
 
-    const GenerateTableRows = () => {
-        return [...Array(20).keys()].map(e => {
+    useEffect(async () => {
+        const {data: {getGraphs}} = await client.query({
+            query: gql`
+                query Query($hullNum: Int!, $startTime: String!, $endTime: String!) {
+                    getGraphs(hullNum: $hullNum, startTime: $startTime, endTime: $endTime) {
+                        HULLNUM
+                        TIME
+                        AIT_1123
+                        FCV_1751_FD
+                        GPS_LAT
+                        LIT_1311
+                    }
+                }
+            `,
+            variables: {
+                hullNum: 2156,
+                startTime: "2022-1-10 02:14:18",
+                endTime: "2022-1-10 02:16:18"
+            }
+        })
+
+        setGraphData(getGraphs)
+    }, [ship, startDate, endDate, startTime, endTime])
+
+    const GenerateTableRows = () =>
+        graphData.map(e => {
             return <tr>
-                <td>{e+1}</td>
-                <td>{new Date().getTime()}</td>
+                <td>{e.HULLNUM}</td>
+                <td>{e.TIME}</td>
                 <td>10</td>
                 <td>20</td>
                 <td>30</td>
                 <td>40</td>
                 <td>50</td>
             </tr>
-        });
-    }
+        })
 
     return (
         <Layout user={user} home>
@@ -75,12 +102,12 @@ export default function Home({redirectToLogin, user}) {
                             }}>SHIP-C</a></li>
                         </ul>
                     </div>
-                    {/* 날짜 선택 */}
+                    {/* 시작 날짜 선택 */}
                     <div className="me-2">
                         <DatePicker
                             selected={startDate}
                             onChange={(date) => setStartDate(date)}
-                            customInput={<DatePickerButton />}
+                            customInput={<DatePickerButton/>}
                         />
                     </div>
                     {/* 시작 시간 선택 */}
@@ -91,26 +118,39 @@ export default function Home({redirectToLogin, user}) {
                         </button>
                         <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
                             {[...Array(24).keys()].map(e => (
-                                <li key={`start_time_item_${e + 1}`}><small className="dropdown-item" onClick={() => setStartTime(e+1)}>{e + 1}:00</small></li>
+                                <li key={`start_time_item_${e + 1}`}><small className="dropdown-item"
+                                                                            onClick={() => setStartTime(e + 1)}>{e + 1}:00</small>
+                                </li>
                             ))}
                         </ul>
                     </div>
-                    <span className="text-white">~</span>
-                    {/* 시작 시간 선택 */}
-                    <div className="dropdown mx-2">
+                    <span className="text-white me-2">~</span>
+                    {/* 끝 날짜 선택 */}
+                    <div className="me-2">
+                        <DatePicker
+                            selected={endDate}
+                            onChange={(date) => setEndDate(date)}
+                            customInput={<DatePickerButton/>}
+                        />
+                    </div>
+                    {/* 끝 시간 선택 */}
+                    <div className="dropdown">
                         <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                             {endTime}:00
                         </button>
                         <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
                             {[...Array(24).keys()].map(e => (
-                                <li key={`end_time_item_${e + 1}`}><small className="dropdown-item" onClick={() => setEndTime(e+1)}>{e + 1}:00</small></li>
+                                <li key={`end_time_item_${e + 1}`}><small className="dropdown-item"
+                                                                          onClick={() => setEndTime(e + 1)}>{e + 1}:00</small>
+                                </li>
                             ))}
                         </ul>
                     </div>
-                    <div className="w-100" />
+                    <div className="w-100"/>
                     {/* 보이기 체크 */}
-                    <button className="btn btn-warning" onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
+                    <button className="btn btn-warning"
+                            onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
                 </div>
                 {/* 그래프 */}
                 <div className={`card rounded-0 shadow-sm ${styles.graph_box} ${isTable ? "d-none" : null}`}>
@@ -154,7 +194,7 @@ export default function Home({redirectToLogin, user}) {
                             </tr>
                             </thead>
                             <tbody>
-                            <GenerateTableRows />
+                            <GenerateTableRows/>
                             </tbody>
                         </table>
                     </div>
