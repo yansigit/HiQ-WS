@@ -174,9 +174,9 @@ export async function getServerSideProps({req, res}) {
     }
 
     const cookies = new Cookies(req, res)
-    tokenMiddleWare(accessToken, refreshToken, cookies)
+    const newAccessToken = tokenMiddleWare(accessToken, refreshToken, cookies)
 
     return {
-        props: {user: getUserFromToken(accessToken)}
+        props: {user: getUserFromToken(newAccessToken)}
     }
 }
