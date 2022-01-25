@@ -8,11 +8,12 @@ import {forwardRef, useEffect, useState} from "react";
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
 import {useRouter} from "next/router";
-import {inspectToken} from "../lib/token";
+import {getUserFromToken, tokenMiddleWare} from "../lib/token";
 import Link from "next/link";
 import Error from '../components/error'
+import Cookies from "cookies";
 
-export default function Home({redirectToLogin}) {
+export default function Home({redirectToLogin, user}) {
     const COLORS = ['#4c4cdb', '#9371e0', '#e071a2']
     const [ship, setShip] = useState('SHIP-A')
     const [startDate, setStartDate] = useState(new Date());
@@ -51,7 +52,7 @@ export default function Home({redirectToLogin}) {
     }
 
     return (
-        <Layout home>
+        <Layout user={user} home>
             <Head>
                 <title>{siteTitle}</title>
             </Head>
@@ -82,7 +83,7 @@ export default function Home({redirectToLogin}) {
                         <DatePicker
                             selected={startDate}
                             onChange={(date) => setStartDate(date)}
-                            customInput={<DatePickerButton/>}
+                            customInput={<DatePickerButton />}
                         />
                     </div>
                     {/* 시작 시간 선택 */}
@@ -166,16 +167,20 @@ export default function Home({redirectToLogin}) {
     )
 }
 
-export async function getServerSideProps({req: {cookies: {accessToken, refreshToken}}}) {
+export async function getServerSideProps({req, res}) {
+
+    const {cookies: {accessToken, refreshToken}} = req
+
     if (!accessToken) {
         return {
             props: {redirectToLogin: true}
         }
     }
 
-    inspectToken(accessToken)
+    const cookies = new Cookies(req, res)
+    const user = tokenMiddleWare(accessToken, refreshToken, cookies)
 
     return {
-        props: {test: '123'}
+        props: {user}
     }
 }

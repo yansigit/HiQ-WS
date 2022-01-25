@@ -4,7 +4,9 @@ import styles from "./login.module.css"
 import {useEffect, useRef} from "react";
 import {useRouter} from "next/router";
 import {useForm} from "react-hook-form";
-import {inspectToken} from "../../lib/token";
+import {getUserFromToken, refreshAccessToken, tokenMiddleWare} from "../../lib/token";
+import {TokenExpiredError} from "jsonwebtoken";
+import Cookies from "cookies";
 
 export default function Login({redirectToDashboard}) {
     const [userID, userPW] = [useRef(), useRef()]
@@ -59,17 +61,16 @@ export default function Login({redirectToDashboard}) {
     )
 }
 
-export async function getServerSideProps({req: {cookies: {accessToken, refreshToken}}}) {
+export async function getServerSideProps({req, res}) {
+
+    const {cookies: {accessToken, refreshToken}} = req
 
     // 이미 로그인되어 있다면 대시보드로 이동
     if (accessToken) {
-        inspectToken(accessToken)
-        return {
-            props: {redirectToDashboard: true}
-        }
+        const cookies = new Cookies(req, res)
+        tokenMiddleWare(accessToken, refreshToken, cookies)
+        return {props: {redirectToDashboard: true}}
     }
 
-    return {
-        props: {}
-    }
+    return {props: {}}
 }

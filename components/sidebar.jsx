@@ -2,7 +2,12 @@ import styles from './sidebar.module.css'
 import Image from "next/image";
 import SettingIcon from '../public/setting.gif'
 
-export default function Sidebar() {
+export default function Sidebar({user: {company, name, position, ships}}) {
+
+    const ShipList = ({ships}) => {
+        return ships.map(e => <a href="#" className="text-white">{e.name}</a>)
+    }
+
     return (
         <div className={`d-flex flex-column flex-shrink-0 p-3 text-white ${styles.sidebar}`}>
             <div className={`card mb-4 rounded-0 shadow-sm text-white ${styles.user_info}`}>
@@ -10,9 +15,9 @@ export default function Sidebar() {
                     <div className="d-flex flex-row align-items-center">
                         <Image src="https://picsum.photos/100/100" width="70" height="70" className="rounded-circle" />
                         <div className="d-flex flex-column w-100 justify-content-center align-items-center">
-                            <span><strong>Hyundai</strong></span>
-                            <span>Seongbin Yoon</span>
-                            <span><em>Manager</em></span>
+                            <span><strong>{company}</strong></span>
+                            <span>{name}</span>
+                            <span><em>{position}</em></span>
                         </div>
                         <Image src={SettingIcon} />
                     </div>
@@ -20,9 +25,7 @@ export default function Sidebar() {
                     <div className="d-flex flex-column text-center">
                         <span className="h6">My Ships</span>
                         <div className="d-flex flex-column">
-                            <a href="#" className="text-white">SHIP-A</a>
-                            <a href="#" className="text-white">SHIP-B</a>
-                            <a href="#" className="text-white">SHIP-C</a>
+                            <ShipList ships={ships} />
                         </div>
                     </div>
                 </div>

@@ -6,12 +6,12 @@ import Footer from "./footer";
 
 export const siteTitle = 'HiQ-WS'
 
-export default function Layout({ children, home }) {
+export default function Layout({ children, home, user }) {
     return (
         <body className={`d-flex flex-column min-vh-100 ${styles.body}`}>
             <Header />
             <div className={`d-flex flex-row ${styles.container}`}>
-                <Sidebar />
+                <Sidebar user={user} />
                 <main className="p-3 w-100">{children}</main>
                 {!home && (
                     <div>
