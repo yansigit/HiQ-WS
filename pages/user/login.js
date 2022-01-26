@@ -9,9 +9,9 @@ import {TokenExpiredError} from "jsonwebtoken";
 import Cookies from "cookies";
 
 export default function Login({redirectToDashboard}) {
-    const [userID, userPW] = [useRef(), useRef()]
+    const [userEmail, userPW] = [useRef(), useRef()]
     const router = useRouter()
-    const { handleSubmit } = useForm()
+    const {handleSubmit} = useForm()
 
     useEffect(async () => {
         if (redirectToDashboard)
@@ -21,7 +21,7 @@ export default function Login({redirectToDashboard}) {
     async function login(e) {
         const {success, error} = await (await fetch('/api/login', {
             method: 'POST',
-            body: JSON.stringify({id: userID.current.value, password: userPW.current.value})
+            body: JSON.stringify({email: userEmail.current.value, password: userPW.current.value})
         })).json()
 
         if (success) {
@@ -32,8 +32,8 @@ export default function Login({redirectToDashboard}) {
     }
 
     return (
-        <body className={`d-flex align-content-center justify-content-center ${styles.body}`}>
-            <div className="container align-self-center">
+        <body className={`d-flex align-content-center justify-content-center ${styles.layoutBody}`}>
+        <div className="container align-self-center">
             <header className="row justify-content-center p-3">
                 {/*<Image src={HWLogo} />*/}
             </header>
@@ -44,19 +44,19 @@ export default function Login({redirectToDashboard}) {
                 {/* 로그인 폼 */}
                 <form onSubmit={handleSubmit(login)} className="col p-5 d-flex flex-column justify-content-center">
                     <div className={`${styles.typelogo} row justify-content-center align-items-center`}>
-                        <Image src={IconLogin} />
+                        <Image src={IconLogin}/>
                     </div>
                     <div className="input-group">
-                    <input type="text" name="userID" className="rounded-0 w-100 m-1 border" ref={userID}/>
-                    <input type="password" name="userPW" className="rounded-0 w-100 m-1 border" ref={userPW} />
-                    <button className="btn btn-danger text-white rounded-0 w-100 m-1">로그인</button>
+                        <input type="text" name="userEmail" className="rounded-0 w-100 m-1 border" ref={userEmail}/>
+                        <input type="password" name="userPW" className="rounded-0 w-100 m-1 border" ref={userPW}/>
+                        <button className="btn btn-danger text-white rounded-0 w-100 m-1">로그인</button>
                     </div>
                 </form>
             </main>
             <footer className="row justify-content-center p-3 bg-dark text-white text-center">
                 <small>Copyright © 2022. HYUNDAI WELDING Ltd. All rights Reserved.</small>
             </footer>
-            </div>
+        </div>
         </body>
     )
 }

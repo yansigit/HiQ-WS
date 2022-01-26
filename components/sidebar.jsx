@@ -2,7 +2,7 @@ import styles from './sidebar.module.css'
 import Image from "next/image";
 import SettingIcon from '../public/setting.gif'
 
-export default function Sidebar({user: {company, name, position, ships}}) {
+export default function Sidebar({user}) {
 
     const ShipList = ({ships}) => {
         let i = 1
@@ -16,9 +16,9 @@ export default function Sidebar({user: {company, name, position, ships}}) {
                     <div className="d-flex flex-row align-items-center">
                         <Image src="https://picsum.photos/100/100" width="70" height="70" className="rounded-circle" />
                         <div className="d-flex flex-column w-100 justify-content-center align-items-center">
-                            <span><strong>{company}</strong></span>
-                            <span>{name}</span>
-                            <span><em>{position}</em></span>
+                            <span><strong>Company: {user.COMPANY}</strong></span>
+                            <span>Name: {user.NAME}</span>
+                            <span><em>Position: {user.POSITION}</em></span>
                         </div>
                         <Image src={SettingIcon} />
                     </div>
@@ -26,7 +26,7 @@ export default function Sidebar({user: {company, name, position, ships}}) {
                     <div className="d-flex flex-column text-center">
                         <span className="h6">My Ships</span>
                         <div className="d-flex flex-column">
-                            <ShipList ships={ships} />
+                            <ShipList ships={user.SHIPS} />
                         </div>
                     </div>
                 </div>
