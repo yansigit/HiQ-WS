@@ -1,30 +1,39 @@
 import {generateAccessToken, generateRefreshToken} from "../../lib/token";
 import Cookies from 'cookies'
-
-const mockUp = [
-    {
-        id: "test",
-        password: "test",
-        info: "secret"
-    }
-]
+import DBConnector from "../../lib/db";
 
 export default async function handler(req, res) {
-    const {id, password} = JSON.parse(req.body)
+    const {email, password} = JSON.parse(req.body)
     const cookies = new Cookies(req, res)
 
-    if (mockUp.find(e => e.id === id && e.password === password)) {
-        cookies.set("accessToken", generateAccessToken(), {
-            httpOnly: true,
-            sameSite: "strict"
+    const user = await DBConnector.getInstance.table('USERS')
+        .where('EMAIL', email)
+        .where('PASSWORD', password)
+        .leftJoin('SHIPS', 'USERS.EMAIL', 'SHIPS.OWNER')
+        .select().then(e => {
+            const {COMPANY, EMAIL, NAME, ROLE, POSITION} = e[0]
+            return ({
+                COMPANY, EMAIL, NAME, ROLE, POSITION,
+                SHIPS: e.reduce((prev, {SHIPNAME, HULLNUM}) => {
+                    prev.push({SHIPNAME, HULLNUM});
+                    return prev
+                }, [])
+            });
         })
-        cookies.set("refreshToken", generateRefreshToken(), {
-            httpOnly: true,
-            sameSite: "strict"
-        })
-        res.status(200).json({ success: true })
+
+    if (!user) {
+        res.status(400).json({error: "LOGIN FAILED"})
         return
     }
 
-    res.status(400).json({ error : "No User" })
+    cookies.set("accessToken", generateAccessToken(user), {
+        httpOnly: true,
+        sameSite: "strict"
+    })
+    cookies.set("refreshToken", generateRefreshToken(user), {
+        httpOnly: true,
+        sameSite: "strict"
+    })
+
+    res.status(200).json({success: true})
 }
