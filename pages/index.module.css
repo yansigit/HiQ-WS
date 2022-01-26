@@ -1,8 +1,13 @@
-.graph_box {
-    height: 450px;
-    width: 100%;
+.tableBox {
+    width: 930px;
+    max-height: 80vh;
 }
 
-.time_ul {
-    columns: 2;
+.tableBody {
+    font-size: 14px;
+    text-align: center;
+}
+
+.graph_box {
+    height: 450px;
 }

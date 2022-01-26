@@ -15,14 +15,31 @@ import {gql} from "@apollo/client";
 import client from "./apollo-client";
 
 export default function Home({redirectToLogin, user}) {
-    const COLORS = ['#4c4cdb', '#9371e0', '#e071a2']
-    const [ship, setShip] = useState('SHIP-A')
+    const [ship, setShip] = useState(user.SHIPS[0].HULLNUM)
     const [startDate, setStartDate] = useState(new Date());
-    const [endDate, setEndDate] = useState(new Date());
-    const [startTime, setStartTime] = useState(0)
-    const [endTime, setEndTime] = useState(24)
+    // const [endDate, setEndDate] = useState(new Date());
+
+    const [preset, setPreset] = useState('Deballasting')
+
+    const [startTime, setStartTime] = useState({hh: '00', mm: '00'})
+    const [startTimeFlag, setStartTimeFlag] = useState(true)
+
+    const [endTime, setEndTime] = useState({hh: '00', mm: '00'})
+    const [endTimeFlag, setEndTimeFlag] = useState(true)
+
     const [isTable, setIsTable] = useState(true)
     const [graphData, setGraphData] = useState([])
+
+    const [labels, setLabels] = useState([])
+
+    const PRESETS = {
+        Ballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
+            'FIT_3211', 'FIT_1131', 'FIT_2131', 'FIT_3131', 'REC1017',
+            'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
+            'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211',
+            'PIT_3212', 'CT_1111', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000'],
+        Deballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD']
+    }
 
     if (redirectToLogin) {
         const button = <Link href="/user/login">
@@ -39,42 +56,119 @@ export default function Home({redirectToLogin, user}) {
     ))
 
     useEffect(async () => {
+        const _startDate = startDate.getDate() < 10 ? '0' + startDate.getDate() : startDate.getDate()
+        // const _endDate = endDate.getDate() < 10 ? '0' + endDate.getDate() : endDate.getDate()
+        const formattedStartTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${startTime.hh}:${startTime.mm}:00`
+        // const formattedEndTime = `${endDate.getFullYear()}-${endDate.getMonth()+1}-${_endDate} 02:15:00`
+        const formattedEndTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${endTime.hh}:${endTime.mm}:00`
+
+        console.log(formattedStartTime, formattedEndTime)
+
         const {data: {getGraphs}} = await client.query({
             query: gql`
                 query Query($hullNum: Int!, $startTime: String!, $endTime: String!) {
                     getGraphs(hullNum: $hullNum, startTime: $startTime, endTime: $endTime) {
-                        HULLNUM
-                        TIME
-                        AIT_1123
-                        FCV_1751_FD
-                        GPS_LAT
-                        LIT_1311
+                        HULLNUM, TIME,
+                        ${PRESETS[preset]}
                     }
                 }
             `,
             variables: {
-                hullNum: 2156,
-                startTime: "2022-1-10 02:14:18",
-                endTime: "2022-1-10 02:16:18"
+                hullNum: ship,
+                startTime: formattedStartTime,
+                endTime: formattedEndTime
             }
         })
 
+        let timeDiff = (endTime.hh + endTime.mm) - (startTime.hh + startTime.mm)
+        if (endTime.mm - startTime.mm < 0) {
+            timeDiff -= 40
+        }
+        console.log(timeDiff)
+        setLabels([...Array(timeDiff).keys()])
         setGraphData(getGraphs)
-    }, [ship, startDate, endDate, startTime, endTime])
+    }, [ship, startDate, /* endDate, */ startTime, endTime, preset])
 
-    const GenerateTableRows = () => {
-        let i = 1
-        return graphData.map(e => {
-            return <tr key={`tableRow${i++}`}>
-                <td>{e.HULLNUM}</td>
-                <td>{e.TIME}</td>
-                <td>10</td>
-                <td>20</td>
-                <td>30</td>
-                <td>40</td>
-                <td>50</td>
+    const DataTable = () => {
+        const GenerateTableRows = () => {
+            let i = 1
+            return graphData.map(e => {
+                const {HULLNUM, TIME, ...DATA} = e
+                delete DATA.__typename
+                console.log(DATA)
+                return <tr key={`tableRow${i++}`}>
+                    <td>{HULLNUM}</td>
+                    <td>{TIME}</td>
+                    {Object.keys(DATA).map(e => <td>{DATA[e] ? DATA[e] : 'NULL'}</td>)}
+                </tr>
+            });
+        }
+
+        return <table className="table table-striped table-hover">
+            <thead className="text-center">
+            <tr>
+                <th>Ship Id</th>
+                <th>Time</th>
+                {PRESETS[preset].map(e => <th>{e}</th>)}
             </tr>
-        });
+            </thead>
+            <tbody className={`${styles.tableBody}`}>
+            <GenerateTableRows/>
+            </tbody>
+        </table>
+    }
+
+    const DropBox = ({defaultValue, setFunction, items}) => {
+        const GenerateDropboxList = ({items, setFunction}) => {
+            let i = 0
+            if (typeof items[0] === "object") {
+                return items.map(({HULLNUM, SHIPNAME}) => <li key={`shipDropList${i++}`}>
+                    <a className="dropdown-item" href="#" onClick={() => {
+                        setFunction(HULLNUM)
+                    }}>{HULLNUM}</a></li>)
+            } else {
+                return items.map(e => <li key={`shipDropList${i++}`}>
+                    <a className="dropdown-item" href="#" onClick={() => {
+                        setFunction(e)
+                    }}>{e}</a></li>)
+            }
+        }
+
+        return <div className="dropdown">
+            <a className="btn btn-secondary dropdown-toggle me-2" href="#" role="button"
+               id="dropdownMenuLink"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                {defaultValue}
+            </a>
+            <ul className="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <GenerateDropboxList items={items} setFunction={setFunction}/>
+            </ul>
+        </div>
+    }
+
+    const TimePicker = ({setTime, timeState, flag, setFlag}) => {
+        return <div className="dropdown me-2">
+            <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                {timeState.hh}:{timeState.mm}
+            </button>
+            <ul className='dropdown-menu' style={{columns: flag ? 2 : 3}} aria-labelledby="dropdownMenuButton1">
+                {flag ? [...Array(25).keys()].map(e => (
+                    <li key={`start_time_item_${e}`}>
+                        <small className="dropdown-item" onClick={() => {
+                            setFlag(!flag)
+                            setTime(({mm}) => ({hh: e < 10 ? '0'+e : e, mm}));
+                        }}>{e}:{timeState.mm}</small>
+                    </li>
+                )) : [...Array(61).keys()].map(e => (
+                    <li key={`start_time_item_${e}`}>
+                        <small className="dropdown-item" onClick={() => {
+                            setFlag(!flag)
+                            setTime(({hh}) => ({hh, mm: e < 10 ? '0'+e : e}))
+                        }}>{timeState.hh}:{e < 10 ? '0' + e : e}</small>
+                    </li>))}
+            </ul>
+        </div>
     }
 
     return (
@@ -82,28 +176,12 @@ export default function Home({redirectToLogin, user}) {
             <Head>
                 <title>{siteTitle}</title>
             </Head>
-            <div className="d-flex flex-column justify-content-center">
-                {/* 컨트롤들 */}
-                <div
-                    className={`d-flex flex-row justify-content-start align-items-center bg-dark mb-3 p-2 ${utilStyles.bd_darkblue} shadow-sm`}>
-                    <div className="dropdown">
-                        <a className="btn btn-secondary dropdown-toggle me-2" href="#" role="button"
-                           id="dropdownMenuLink"
-                           data-bs-toggle="dropdown" aria-expanded="false">
-                            {ship}
-                        </a>
-                        <ul className="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('1')
-                            }}>SHIP-A</a></li>
-                            <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('2')
-                            }}>SHIP-B</a></li>
-                            <li><a className="dropdown-item" href="#" onClick={() => {
-                                setShip('2156')
-                            }}>SHIP-C</a></li>
-                        </ul>
-                    </div>
+            <div className={`d-flex flex-column justify-content-center`}>
+                <div className={`d-flex flex-row justify-content-start align-items-center bg-dark mb-3 p-2 ${utilStyles.bd_darkblue} shadow-sm`}>
+                    {/* Select Hull Num */}
+                    <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship} />
+                    {/* Select Preset */}
+                    <DropBox setFunction={setPreset} items={Object.keys(PRESETS)} defaultValue={preset} />
                     {/* 시작 날짜 선택 */}
                     <div className="me-2">
                         <DatePicker
@@ -113,42 +191,18 @@ export default function Home({redirectToLogin, user}) {
                         />
                     </div>
                     {/* 시작 시간 선택 */}
-                    <div className="dropdown me-2">
-                        <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            {startTime}:00
-                        </button>
-                        <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
-                            {[...Array(24).keys()].map(e => (
-                                <li key={`start_time_item_${e + 1}`}><small className="dropdown-item"
-                                                                            onClick={() => setStartTime(e + 1)}>{e + 1}:00</small>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    <TimePicker setTime={setStartTime} timeState={startTime} flag={startTimeFlag} setFlag={setStartTimeFlag} />
                     <span className="text-white me-2">~</span>
                     {/* 끝 날짜 선택 */}
-                    <div className="me-2">
-                        <DatePicker
-                            selected={endDate}
-                            onChange={(date) => setEndDate(date)}
-                            customInput={<DatePickerButton/>}
-                        />
-                    </div>
+                    {/*<div className="me-2">*/}
+                    {/*    <DatePicker*/}
+                    {/*        selected={endDate}*/}
+                    {/*        onChange={(date) => setEndDate(date)}*/}
+                    {/*        customInput={<DatePickerButton/>}*/}
+                    {/*    />*/}
+                    {/*</div>*/}
                     {/* 끝 시간 선택 */}
-                    <div className="dropdown">
-                        <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            {endTime}:00
-                        </button>
-                        <ul className={`dropdown-menu ${styles.time_ul}`} aria-labelledby="dropdownMenuButton1">
-                            {[...Array(24).keys()].map(e => (
-                                <li key={`end_time_item_${e + 1}`}><small className="dropdown-item"
-                                                                          onClick={() => setEndTime(e + 1)}>{e + 1}:00</small>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag} />
                     <div className="w-100"/>
                     {/* 보이기 체크 */}
                     <button className="btn btn-warning"
@@ -163,13 +217,12 @@ export default function Home({redirectToLogin, user}) {
                         <Chart
                             type='line'
                             data={{
-                                labels: ['sun', 'mon', 'tue', 'wed', 'thur', 'fri', 'sat'],
-                                datasets: [0, 1, 2].map(e => ({
-                                    label: 'Temp' + e,
-                                    data: [Math.round(Math.random() * 200), Math.round(Math.random() * 200), Math.round(Math.random() * 200),
-                                        Math.round(Math.random() * 200), Math.round(Math.random() * 200), Math.round(Math.random() * 200), Math.round(Math.random() * 200)],
+                                labels,
+                                datasets: PRESETS[preset].map(e => ({
+                                    label: e,
+                                    data: [],
                                     fill: false,
-                                    borderColor: COLORS[e],
+                                    borderColor: '#'+(Math.random()*0xFFFFFF<<0).toString(16),
                                     tension: 0.1
                                 }))
                             }}
@@ -178,27 +231,12 @@ export default function Home({redirectToLogin, user}) {
                     </div>
                 </div>
                 {/* 테이블 */}
-                <div className={`card shadow-sm ${!isTable ? "d-none" : null}`}>
+                <div className={`card shadow-sm ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
                     <div className="card-header fw-bold text-center">
                         Current {ship} Status Table
                     </div>
-                    <div className="card-body">
-                        <table className="table table-striped table-hover">
-                            <thead>
-                            <tr>
-                                <th>Ship Id</th>
-                                <th>Time</th>
-                                <th>C1</th>
-                                <th>C2</th>
-                                <th>C3</th>
-                                <th>C4</th>
-                                <th>C5</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <GenerateTableRows/>
-                            </tbody>
-                        </table>
+                    <div className="card-body overflow-scroll">
+                        <DataTable />
                     </div>
                 </div>
             </div>

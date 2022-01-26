@@ -92,6 +92,10 @@ export const typeDefs = gql`
         REC4031: Int,
         REC4043: Int,
         TE_1111: Int,
+        REC1000: Int,
+        REC2000: Int,
+        REC3000: Int,
+        REC4000: Int,
     }
 
     type Query {
