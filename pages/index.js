@@ -240,7 +240,7 @@ export default function Home({redirectToLogin, user}) {
                                 datasets: PRESETS[preset].map(e => {
                                     return ({
                                         label: e,
-                                        data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g[e]),
+                                        data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g ? g[e] : null),
                                         fill: false,
                                         borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
                                         tension: 0.1
