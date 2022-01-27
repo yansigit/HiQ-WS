@@ -40,6 +40,7 @@ export default function Home({redirectToLogin, user}) {
     const [graphData, setGraphData] = useState([])
 
     const [labels, setLabels] = useState([])
+    const [chartPointNumber, setChartPointNumber] = useState(100)
 
     const PRESETS = {
         Ballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
@@ -67,12 +68,12 @@ export default function Home({redirectToLogin, user}) {
             return
         }
 
-        if (endTime.hh - startTime.hh > 2) {
-            alert("Too wide time range. please set the range less than 2hours")
-            const adjustedHour = parseInt(startTime.hh) + 2
-            setEndTime({hh: adjustedHour < 10 ? '0' + adjustedHour : String(adjustedHour), mm: startTime.mm})
-            return
-        }
+        // if (endTime.hh - startTime.hh > 2) {
+        //     alert("Too wide time range. please set the range less than 2hours")
+        //     const adjustedHour = parseInt(startTime.hh) + 2
+        //     setEndTime({hh: adjustedHour < 10 ? '0' + adjustedHour : String(adjustedHour), mm: startTime.mm})
+        //     return
+        // }
 
         const _startDate = startDate.getDate() < 10 ? '0' + startDate.getDate() : startDate.getDate()
         // const _endDate = endDate.getDate() < 10 ? '0' + endDate.getDate() : endDate.getDate()
@@ -227,18 +228,19 @@ export default function Home({redirectToLogin, user}) {
                 </div>
                 {/* 그래프 */}
                 <div className={`card rounded-0 shadow-sm ${styles.graph_box} ${isTable ? "d-none" : null}`}>
-                    <div className={`card-header text-center fw-bold ${utilStyles.text_darkblue}`}>
-                        Current {ship} Status Chart
+                    <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
+                        <h5 className="m-0 w-100">Chart view</h5>
+                        <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
                     </div>
                     <div className="card-body">
                         <Chart
                             type='line'
                             data={{
-                                labels,
+                                labels: [...labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), labels[labels.length-1]],
                                 datasets: PRESETS[preset].map(e => {
                                     return ({
                                         label: e,
-                                        data: graphData.map(g => g[e]),
+                                        data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g[e]),
                                         fill: false,
                                         borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
                                         tension: 0.1
