@@ -4,8 +4,7 @@ import styles from "./login.module.css"
 import {useEffect, useRef} from "react";
 import {useRouter} from "next/router";
 import {useForm} from "react-hook-form";
-import {getUserFromToken, refreshAccessToken, tokenMiddleWare} from "../../lib/token";
-import {TokenExpiredError} from "jsonwebtoken";
+import {tokenMiddleWare} from "../../lib/token";
 import Cookies from "cookies";
 
 export default function Login({redirectToDashboard}) {

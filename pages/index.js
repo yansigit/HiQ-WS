@@ -13,6 +13,7 @@ import Error from '../components/error'
 import Cookies from "cookies";
 import {gql} from "@apollo/client";
 import client from "./apollo-client";
+import CsvDownload from 'react-json-to-csv'
 
 export default function Home({redirectToLogin, user}) {
 
@@ -250,8 +251,9 @@ export default function Home({redirectToLogin, user}) {
                 </div>
                 {/* 테이블 */}
                 <div className={`card shadow-sm ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
-                    <div className="card-header fw-bold text-center">
-                        Current {ship} Status Table
+                    <div className="card-header fw-bold text-center d-flex align-items-center">
+                        <h5 className="m-0 w-100">Table view</h5>
+                        <CsvDownload className="btn btn-success" data={graphData} children="CSV" filename='shipdata.csv' />
                     </div>
                     <div className="card-body overflow-scroll">
                         <DataTable />
