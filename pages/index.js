@@ -253,7 +253,7 @@ export default function Home({redirectToLogin, user}) {
                 <div className={`card shadow-sm ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
                     <div className="card-header fw-bold text-center d-flex align-items-center">
                         <h5 className="m-0 w-100">Table view</h5>
-                        <CsvDownload className="btn btn-success" data={graphData} children="CSV" filename='shipdata.csv' />
+                        <CsvDownload className="btn btn-success" data={graphData.map(e => {const {__typename, ...filtered} = e; return filtered})} children="CSV" filename='shipdata.csv' />
                     </div>
                     <div className="card-body overflow-scroll">
                         <DataTable />
