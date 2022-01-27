@@ -11,6 +11,9 @@ export default async function handler(req, res) {
         .where('PASSWORD', password)
         .leftJoin('SHIPS', 'USERS.EMAIL', 'SHIPS.OWNER')
         .select().then(e => {
+            if (!e.length) {
+                return
+            }
             const {COMPANY, EMAIL, NAME, ROLE, POSITION} = e[0]
             return ({
                 COMPANY, EMAIL, NAME, ROLE, POSITION,
@@ -22,7 +25,7 @@ export default async function handler(req, res) {
         })
 
     if (!user) {
-        res.status(400).json({error: "LOGIN FAILED"})
+        res.status(400).json({error: "Invalid login information. Please check your email and password again."})
         return
     }
 

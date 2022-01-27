@@ -15,6 +15,15 @@ import {gql} from "@apollo/client";
 import client from "./apollo-client";
 
 export default function Home({redirectToLogin, user}) {
+
+    if (redirectToLogin) {
+        const button = <Link href="/user/login">
+            <a className="btn btn-danger">Login</a>
+        </Link>
+
+        return <Error title="ERROR" message="You are not authorized to access this page." customTag={button}/>
+    }
+
     const [ship, setShip] = useState(user.SHIPS[0].HULLNUM)
     const [startDate, setStartDate] = useState(new Date());
     // const [endDate, setEndDate] = useState(new Date());
@@ -23,7 +32,6 @@ export default function Home({redirectToLogin, user}) {
 
     const [startTime, setStartTime] = useState({hh: '00', mm: '00'})
     const [startTimeFlag, setStartTimeFlag] = useState(true)
-
     const [endTime, setEndTime] = useState({hh: '00', mm: '00'})
     const [endTimeFlag, setEndTimeFlag] = useState(true)
 
@@ -41,28 +49,35 @@ export default function Home({redirectToLogin, user}) {
         Deballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD']
     }
 
-    if (redirectToLogin) {
-        const button = <Link href="/user/login">
-            <a className="btn btn-danger">로그인</a>
-        </Link>
-
-        return <Error title="오류" message="로그인이 필요한 페이지입니다" customTag={button}/>
-    }
-
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
-        <button className="btn btn-primary" onClick={onClick} ref={ref}>
+        <button className="btn btn-secondary" onClick={onClick} ref={ref}>
             {value}
         </button>
     ))
 
-    useEffect(async () => {
+    // 0127: useEffect -> plain function
+    const modifyOnClick = async () => {
+        if ((endTime.hh + endTime.mm) - (startTime.hh + startTime.mm) < 0) {
+            alert("Invalid time range")
+            setStartTime({hh: "00", mm: "00"})
+            setEndTime({hh: "00", mm: "00"})
+            setStartTimeFlag(true)
+            setEndTimeFlag(true)
+            return
+        }
+
+        if (endTime.hh - startTime.hh > 2) {
+            alert("Too wide time range. please set the range less than 2hours")
+            const adjustedHour = parseInt(startTime.hh) + 2
+            setEndTime({hh: adjustedHour < 10 ? '0' + adjustedHour : String(adjustedHour), mm: startTime.mm})
+            return
+        }
+
         const _startDate = startDate.getDate() < 10 ? '0' + startDate.getDate() : startDate.getDate()
         // const _endDate = endDate.getDate() < 10 ? '0' + endDate.getDate() : endDate.getDate()
         const formattedStartTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${startTime.hh}:${startTime.mm}:00`
         // const formattedEndTime = `${endDate.getFullYear()}-${endDate.getMonth()+1}-${_endDate} 02:15:00`
         const formattedEndTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${endTime.hh}:${endTime.mm}:00`
-
-        console.log(formattedStartTime, formattedEndTime)
 
         const {data: {getGraphs}} = await client.query({
             query: gql`
@@ -80,14 +95,14 @@ export default function Home({redirectToLogin, user}) {
             }
         })
 
-        let timeDiff = (endTime.hh + endTime.mm) - (startTime.hh + startTime.mm)
-        if (endTime.mm - startTime.mm < 0) {
-            timeDiff -= 40
-        }
-        console.log(timeDiff)
-        setLabels([...Array(timeDiff).keys()])
+        // setLabels([...Array(timeDiff).keys()])
         setGraphData(getGraphs)
-    }, [ship, startDate, /* endDate, */ startTime, endTime, preset])
+        setLabels(getGraphs.map(g => g.TIME.split(' ')[1]))
+    }
+
+    useEffect(async () => {
+        await modifyOnClick();
+    }, [ship, preset, startDate])
 
     const DataTable = () => {
         const GenerateTableRows = () => {
@@ -95,7 +110,6 @@ export default function Home({redirectToLogin, user}) {
             return graphData.map(e => {
                 const {HULLNUM, TIME, ...DATA} = e
                 delete DATA.__typename
-                console.log(DATA)
                 return <tr key={`tableRow${i++}`}>
                     <td>{HULLNUM}</td>
                     <td>{TIME}</td>
@@ -153,18 +167,18 @@ export default function Home({redirectToLogin, user}) {
                 {timeState.hh}:{timeState.mm}
             </button>
             <ul className='dropdown-menu' style={{columns: flag ? 2 : 3}} aria-labelledby="dropdownMenuButton1">
-                {flag ? [...Array(25).keys()].map(e => (
+                {flag ? [...Array(24).keys()].map(e => (
                     <li key={`start_time_item_${e}`}>
                         <small className="dropdown-item" onClick={() => {
                             setFlag(!flag)
-                            setTime(({mm}) => ({hh: e < 10 ? '0'+e : e, mm}));
+                            setTime(({mm}) => ({hh: e < 10 ? '0'+e : String(e), mm}));
                         }}>{e}:{timeState.mm}</small>
                     </li>
-                )) : [...Array(61).keys()].map(e => (
+                )) : [...Array(60).keys()].map(e => (
                     <li key={`start_time_item_${e}`}>
                         <small className="dropdown-item" onClick={() => {
                             setFlag(!flag)
-                            setTime(({hh}) => ({hh, mm: e < 10 ? '0'+e : e}))
+                            setTime(({hh}) => ({hh, mm: e < 10 ? '0'+e : String(e)}))
                         }}>{timeState.hh}:{e < 10 ? '0' + e : e}</small>
                     </li>))}
             </ul>
@@ -203,10 +217,12 @@ export default function Home({redirectToLogin, user}) {
                     {/*</div>*/}
                     {/* 끝 시간 선택 */}
                     <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag} />
-                    <div className="w-100"/>
                     {/* 보이기 체크 */}
-                    <button className="btn btn-warning"
+                    <button className="btn btn-secondary"
                             onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
+                    <div className="w-100"/>
+                    <button className="btn btn-primary"
+                            onClick={() => modifyOnClick()}>Execute</button>
                 </div>
                 {/* 그래프 */}
                 <div className={`card rounded-0 shadow-sm ${styles.graph_box} ${isTable ? "d-none" : null}`}>
@@ -218,13 +234,15 @@ export default function Home({redirectToLogin, user}) {
                             type='line'
                             data={{
                                 labels,
-                                datasets: PRESETS[preset].map(e => ({
-                                    label: e,
-                                    data: [],
-                                    fill: false,
-                                    borderColor: '#'+(Math.random()*0xFFFFFF<<0).toString(16),
-                                    tension: 0.1
-                                }))
+                                datasets: PRESETS[preset].map(e => {
+                                    return ({
+                                        label: e,
+                                        data: graphData.map(g => g[e]),
+                                        fill: false,
+                                        borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
+                                        tension: 0.1
+                                    });
+                                })
                             }}
                             options={{maintainAspectRatio: false}}
                         />
