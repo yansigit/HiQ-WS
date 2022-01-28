@@ -3,7 +3,7 @@
     background: linear-gradient(to bottom, #e0e3ed 0%, #e0e3ed 333px, white 100%);
 }
 
-@media (min-width: 992px) and (max-width: 1540px) {
+@media (min-width: 992px) and (max-width: 1680px) {
     .sideBar {
         min-width: 270px;
     }
@@ -15,7 +15,6 @@
 
 
 .footer {
-    background: #6b7989;
     color: white;
     text-align: center;
     height: 50px;

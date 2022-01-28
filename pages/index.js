@@ -187,13 +187,23 @@ export default function Home({redirectToLogin, user}) {
         </div>
     }
 
+    const getGraphDataInPercentage = (e) => {
+        const data = [...graphData.filter((_, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]]
+            .map(g => g ? g[e] : null)
+        console.log(e, data)
+        const [min, max] = [Math.min(...data), Math.max(...data)]
+        if (min === max)
+            return new Array(data.length).fill(0)
+        return data.map(d => (d-min)/(max-min)*100)
+    }
+
     return (
         <Layout user={user}>
             <Head>
                 <title>{siteTitle}</title>
             </Head>
             {/* Setting Bar */}
-            <div className={`row m-0 bg-dark ${utilStyles.bd_darkblue} shadow-sm`}>
+            <div className={`row rounded-1 m-0 my-md-3 mt-lg-0 p-0 bg-dark ${utilStyles.bd_darkblue} shadow-sm`}>
                 <div className="col-lg col-xl-6 d-flex flex-row p-0 p-2 justify-content-center">
                     {/* Select Hull Num */}
                     <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship} />
@@ -232,9 +242,9 @@ export default function Home({redirectToLogin, user}) {
                 </div>
             </div>
             {/* 그래프 */}
-            <div className={`row m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
+            <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
                 <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
-                    <h5 className="m-0 w-100">Chart view</h5>
+                    <h5 className="m-0 w-100">Chart view (in Percentage)</h5>
                     <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
                 </div>
                 <div className="card-body">
@@ -245,14 +255,22 @@ export default function Home({redirectToLogin, user}) {
                             datasets: PRESETS[preset].map(e => {
                                 return ({
                                     label: e,
-                                    data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g ? g[e] : null),
+                                    data: getGraphDataInPercentage(e),
                                     fill: false,
                                     borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
                                     tension: 0.1
                                 });
                             })
                         }}
-                        options={{maintainAspectRatio: false}}
+                        options={{
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'right',
+                                }
+                            }
+                    }}
                     />
                 </div>
             </div>

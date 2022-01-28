@@ -7,7 +7,7 @@ export const siteTitle = 'HiQ-WS'
 
 export default function Layout({ children, user }) {
     return (
-        <div className={`container-fluid ${styles.layoutBody}`}>
+        <div className={`container-fluid d-flex flex-column vh-100 ${styles.layoutBody}`}>
             <Header className='row' />
             <div className="row m-0 py-3 justify-content-center">
                 <Sidebar className={`col-lg-3 ${styles.sideBar}`} user={user} />
@@ -15,7 +15,7 @@ export default function Layout({ children, user }) {
                     {children}
                 </main>
             </div>
-            <Footer className={`row mt-auto ${styles.footer}`} />
+            <Footer className={`row h-100 ${styles.footer}`} />
         </div>
     )
 }
