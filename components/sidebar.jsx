@@ -3,7 +3,7 @@ import Image from "next/image";
 import SettingIcon from '../public/setting.gif'
 import {useEffect} from "react";
 
-export default function Sidebar({user}) {
+export default function Sidebar({user, className}) {
     const {EMAIL, PASSWORD, ROLE, COMPANY, NAME, POSITION, SHIPS} = user
 
     useEffect(() => {
@@ -16,8 +16,8 @@ export default function Sidebar({user}) {
     }
 
     return (
-        <div className={`d-flex flex-column flex-shrink-0 p-3 text-white ${styles.sidebar}`}>
-            <div className={`card mb-4 rounded-0 shadow-sm text-white ${styles.user_info}`}>
+        <div className={`${className} text-white`}>
+            <div className={`card mb-3 rounded-0 shadow-sm text-white ${styles.user_info}`}>
                 <div className="card-body">
                     <div className="d-flex flex-row align-items-center">
                         <Image src="https://picsum.photos/100/100" width="70" height="70" className="rounded-circle" />
@@ -38,7 +38,7 @@ export default function Sidebar({user}) {
                 </div>
             </div>
 
-            <div className={`card mb-4 rounded-0 shadow-sm text-black bg-white`}>
+            <div className={`card rounded-0 shadow-sm text-black bg-white`}>
                 <div className="card-header text-center fw-bold">
                     Important Logs
                 </div>

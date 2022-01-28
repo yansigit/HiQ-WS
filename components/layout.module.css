@@ -1,13 +1,18 @@
 .layoutBody {
-    width: 100vw;
-    min-height: 100vh;
     overflow-x: hidden;
-}
-
-.container {
-    padding: 0 300px;
     background: linear-gradient(to bottom, #e0e3ed 0%, #e0e3ed 333px, white 100%);
 }
+
+@media (min-width: 992px) and (max-width: 1540px) {
+    .sideBar {
+        min-width: 270px;
+    }
+    .main {
+        max-width: 70%;
+    }
+}
+
+
 
 .footer {
     background: #6b7989;

@@ -7,20 +7,15 @@ export const siteTitle = 'HiQ-WS'
 
 export default function Layout({ children, user }) {
     return (
-        <div className={`d-flex flex-column min-vh-100 ${styles.layoutBody}`}>
-            <Header />
-            <div className={`d-flex flex-row ${styles.container}`}>
-                <Sidebar user={user} />
-                <main className="p-3 w-100">{children}</main>
-                {/*{!home && (*/}
-                {/*    <div>*/}
-                {/*        <Link href="/">*/}
-                {/*            <a>← Back to home</a>*/}
-                {/*        </Link>*/}
-                {/*    </div>*/}
-                {/*)}*/}
+        <div className={`container-fluid ${styles.layoutBody}`}>
+            <Header className='row' />
+            <div className="row m-0 py-3 justify-content-center">
+                <Sidebar className={`col-lg-3 ${styles.sideBar}`} user={user} />
+                <main className={`col-lg pt-sm-3 pt-md-0 ${styles.main}`}>
+                    {children}
+                </main>
             </div>
-            <Footer className={`mt-auto ${styles.footer}`} />
+            <Footer className={`row mt-auto ${styles.footer}`} />
         </div>
     )
 }

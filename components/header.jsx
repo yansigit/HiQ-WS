@@ -2,9 +2,9 @@ import Image from "next/image";
 import Logo from "../public/logo.png"
 import styles from './header.module.css'
 
-export default function Header() {
+export default function Header({className}) {
     return (
-        <header>
+        <header className={`${className}`}>
             <div className={`px-3 py-2 text-white ${styles.top_header}`}>
                 <div className="container">
                     <div

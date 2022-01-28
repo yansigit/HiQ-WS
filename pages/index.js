@@ -52,7 +52,7 @@ export default function Home({redirectToLogin, user}) {
     }
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
-        <button className="btn btn-secondary" onClick={onClick} ref={ref}>
+        <button className="btn btn-secondary w-100" onClick={onClick} ref={ref}>
             {value}
         </button>
     ))
@@ -134,7 +134,7 @@ export default function Home({redirectToLogin, user}) {
         </table>
     }
 
-    const DropBox = ({defaultValue, setFunction, items}) => {
+    const DropBox = ({defaultValue, setFunction, items, className}) => {
         const GenerateDropboxList = ({items, setFunction}) => {
             let i = 0
             if (typeof items[0] === "object") {
@@ -150,7 +150,7 @@ export default function Home({redirectToLogin, user}) {
             }
         }
 
-        return <div className="dropdown">
+        return <div className={`dropdown ${className}`}>
             <a className="btn btn-secondary dropdown-toggle me-2" href="#" role="button"
                id="dropdownMenuLink"
                data-bs-toggle="dropdown" aria-expanded="false">
@@ -163,8 +163,8 @@ export default function Home({redirectToLogin, user}) {
     }
 
     const TimePicker = ({setTime, timeState, flag, setFlag}) => {
-        return <div className="dropdown me-2">
-            <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1"
+        return <div className="dropdown w-100">
+            <button className="btn btn-secondary dropdown-toggle w-100" type="button" id="dropdownMenuButton1"
                     data-bs-toggle="dropdown" aria-expanded="false">
                 {timeState.hh}:{timeState.mm}
             </button>
@@ -192,23 +192,26 @@ export default function Home({redirectToLogin, user}) {
             <Head>
                 <title>{siteTitle}</title>
             </Head>
-            <div className={`d-flex flex-column justify-content-center`}>
-                <div className={`d-flex flex-row justify-content-start align-items-center bg-dark mb-3 p-2 ${utilStyles.bd_darkblue} shadow-sm`}>
+            {/* Setting Bar */}
+            <div className={`row m-0 bg-dark ${utilStyles.bd_darkblue} shadow-sm`}>
+                <div className="col-lg col-xl-6 d-flex flex-row p-0 p-2 justify-content-center">
                     {/* Select Hull Num */}
                     <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship} />
                     {/* Select Preset */}
                     <DropBox setFunction={setPreset} items={Object.keys(PRESETS)} defaultValue={preset} />
                     {/* 시작 날짜 선택 */}
-                    <div className="me-2">
+                    <div className="w-100">
                         <DatePicker
                             selected={startDate}
                             onChange={(date) => setStartDate(date)}
                             customInput={<DatePickerButton/>}
                         />
                     </div>
+                </div>
+                <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end justify-content-lg-center">
                     {/* 시작 시간 선택 */}
                     <TimePicker setTime={setStartTime} timeState={startTime} flag={startTimeFlag} setFlag={setStartTimeFlag} />
-                    <span className="text-white me-2">~</span>
+                    <span className="text-white mx-2">~</span>
                     {/* 끝 날짜 선택 */}
                     {/*<div className="me-2">*/}
                     {/*    <DatePicker*/}
@@ -219,47 +222,48 @@ export default function Home({redirectToLogin, user}) {
                     {/*</div>*/}
                     {/* 끝 시간 선택 */}
                     <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag} />
+                </div>
+                <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end">
                     {/* 보이기 체크 */}
-                    <button className="btn btn-secondary"
+                    <button className="btn btn-secondary me-2 w-100"
                             onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
-                    <div className="w-100"/>
-                    <button className="btn btn-primary"
+                    <button className="btn btn-primary w-100"
                             onClick={() => modifyOnClick()}>Execute</button>
                 </div>
-                {/* 그래프 */}
-                <div className={`card rounded-0 shadow-sm ${styles.graph_box} ${isTable ? "d-none" : null}`}>
-                    <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
-                        <h5 className="m-0 w-100">Chart view</h5>
-                        <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
-                    </div>
-                    <div className="card-body">
-                        <Chart
-                            type='line'
-                            data={{
-                                labels: [...labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), labels[labels.length-1]],
-                                datasets: PRESETS[preset].map(e => {
-                                    return ({
-                                        label: e,
-                                        data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g ? g[e] : null),
-                                        fill: false,
-                                        borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
-                                        tension: 0.1
-                                    });
-                                })
-                            }}
-                            options={{maintainAspectRatio: false}}
-                        />
-                    </div>
+            </div>
+            {/* 그래프 */}
+            <div className={`row m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
+                <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
+                    <h5 className="m-0 w-100">Chart view</h5>
+                    <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
                 </div>
-                {/* 테이블 */}
-                <div className={`card shadow-sm ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
-                    <div className="card-header fw-bold text-center d-flex align-items-center">
-                        <h5 className="m-0 w-100">Table view</h5>
-                        <CsvDownload className="btn btn-success" data={graphData.map(e => {const {__typename, ...filtered} = e; return filtered})} children="CSV" filename='shipdata.csv' />
-                    </div>
-                    <div className="card-body overflow-scroll">
-                        <DataTable />
-                    </div>
+                <div className="card-body">
+                    <Chart
+                        type='line'
+                        data={{
+                            labels: [...labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), labels[labels.length-1]],
+                            datasets: PRESETS[preset].map(e => {
+                                return ({
+                                    label: e,
+                                    data: [...graphData.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]].map(g => g ? g[e] : null),
+                                    fill: false,
+                                    borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
+                                    tension: 0.1
+                                });
+                            })
+                        }}
+                        options={{maintainAspectRatio: false}}
+                    />
+                </div>
+            </div>
+            {/* 테이블 */}
+            <div className={`m-0 card shadow-sm p-0 ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
+                <div className="card-header fw-bold text-center d-flex align-items-center">
+                    <h5 className="m-0 w-100">Table view</h5>
+                    <CsvDownload className="btn btn-success" data={graphData.map(e => {const {__typename, ...filtered} = e; return filtered})} children="CSV" filename='shipdata.csv' />
+                </div>
+                <div className="card-body overflow-scroll">
+                    <DataTable />
                 </div>
             </div>
         </Layout>
