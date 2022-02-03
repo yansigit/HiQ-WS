@@ -7,7 +7,14 @@ export default async function handler(req, res) {
     })
 
     socket.setEncoding('utf8')
+
     socket.setTimeout(1000)
+    socket.on('timeout', () => {
+        socket.destroy()
+        socket.end()
+        res.status(400).json({error: 'time out'})
+    })
+
     socket.on('connect', () => {
         console.log('connected')
         socket.write('hi')
