@@ -138,7 +138,7 @@ export default function Home({redirectToLogin, user}) {
             <tr>
                 <th>Ship Id</th>
                 <th>Time</th>
-                {PRESETS[preset].map(e => <th>{e}</th>)}
+                {PRESETS[preset].map(e => <th key={e}>{e}</th>)}
             </tr>
             </thead>
             <tbody className={`${styles.tableBody}`}>

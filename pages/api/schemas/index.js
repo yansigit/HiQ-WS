@@ -97,6 +97,10 @@ export const typeDefs = gql`
         REC3000: Int,
         REC4000: Int,
     }
+    
+    type OPC_REALTIME {
+        
+    }
 
     type Query {
         getGraphs(hullNum: Int!, startTime: String!, endTime: String!): [Graph]

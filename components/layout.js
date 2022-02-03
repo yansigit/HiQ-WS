@@ -11,7 +11,7 @@ export default function Layout({ children, user }) {
             <Header className='row' />
             <div className="row m-0 py-3 justify-content-center">
                 <Sidebar className={`col-lg-3 ${styles.sideBar}`} user={user} />
-                <main className={`col-lg pt-sm-3 pt-md-0 ${styles.main}`}>
+                <main className={`col-lg-9 pt-sm-3 pt-md-0 ${styles.main}`}>
                     {children}
                 </main>
             </div>
