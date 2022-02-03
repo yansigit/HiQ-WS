@@ -38,5 +38,5 @@ export default async function handler(req, res) {
         sameSite: "strict"
     })
 
-    res.status(200).json({success: true})
+    res.status(200).json({success: true, ROLE: user.ROLE})
 }

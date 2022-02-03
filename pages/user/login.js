@@ -4,27 +4,31 @@ import styles from "./login.module.css"
 import {useEffect, useRef} from "react";
 import {useRouter} from "next/router";
 import {useForm} from "react-hook-form";
-import {tokenMiddleWare} from "../../lib/token";
+import {getUserFromToken, tokenMiddleWare} from "../../lib/token";
 import Cookies from "cookies";
 
-export default function Login({redirectToDashboard}) {
+export default function Login({LoggedIn, user}) {
     const [userEmail, userPW] = [useRef(), useRef()]
     const router = useRouter()
     const {handleSubmit} = useForm()
 
     useEffect(async () => {
-        if (redirectToDashboard)
-            await router.replace("/")
+        console.log(user)
+        if (LoggedIn)
+            if (user.ROLE === 'admin')
+                await router.replace('/admin')
+            else
+                await router.replace("/")
     }, [])
 
     async function login(e) {
-        const {success, error} = await (await fetch('/api/login', {
+        const {success, error, ROLE} = await (await fetch('/api/login', {
             method: 'POST',
             body: JSON.stringify({email: userEmail.current.value, password: userPW.current.value})
         })).json()
 
         if (success) {
-            await router.push("/")
+            ROLE === 'admin' ? await router.replace("/admin") : await router.replace("/")
         } else {
             alert(error)
         }
@@ -67,8 +71,9 @@ export async function getServerSideProps({req, res}) {
     // Redirect to dashboard page if the user already logged in
     if (accessToken) {
         const cookies = new Cookies(req, res)
-        tokenMiddleWare(accessToken, refreshToken, cookies)
-        return {props: {redirectToDashboard: true}}
+        const accessToken = tokenMiddleWare(accessToken, refreshToken, cookies)
+        const user = getUserFromToken(accessToken)
+        return {props: {LoggedIn: true, user}}
     }
 
     return {props: {}}

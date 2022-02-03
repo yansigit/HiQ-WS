@@ -4,11 +4,7 @@ import SettingIcon from '../public/setting.gif'
 import {useEffect} from "react";
 
 export default function Sidebar({user, className}) {
-    const {EMAIL, PASSWORD, ROLE, COMPANY, NAME, POSITION, SHIPS} = user
-
-    useEffect(() => {
-        console.log(user)
-    }, [])
+    const {EMAIL, ROLE, COMPANY, NAME, POSITION, SHIPS} = user
 
     const ShipList = ({ships}) => {
         let i = 1

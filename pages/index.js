@@ -14,15 +14,26 @@ import Cookies from "cookies";
 import {gql} from "@apollo/client";
 import client from "./apollo-client";
 import CsvDownload from 'react-json-to-csv'
+import {useRouter} from "next/router";
 
 export default function Home({redirectToLogin, user}) {
+    const router = useRouter()
 
     if (redirectToLogin) {
         const button = <Link href="/user/login">
             <a className="btn btn-danger">Login</a>
         </Link>
 
-        return <Error title="ERROR" message="You are not authorized to access this page." customTag={button}/>
+        return <Error title="ERROR" message="You are not authorized to access this page." customTag={button} />
+    }
+
+    if (user.SHIPS[0].HULLNUM == null) {
+        const button = <button onClick={async () => {
+            await fetch('/api/logout')
+            await router.replace('/user/login')
+        }} className="btn btn-danger">Logout</button>
+
+        return <Error title="WARNING" message="Your account doesn't have any ship. Please contact to admin." customTag={button} />
     }
 
     const [ship, setShip] = useState(user.SHIPS[0].HULLNUM)
@@ -48,8 +59,10 @@ export default function Home({redirectToLogin, user}) {
             'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
             'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211',
             'PIT_3212', 'CT_1111', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000'],
-        Deballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD']
+        Deballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
     }
+
+    const [COLORS, _] = useState(PRESETS.Ballasting.reduce((o, key) => ({ ...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-secondary w-100" onClick={onClick} ref={ref}>
@@ -188,9 +201,16 @@ export default function Home({redirectToLogin, user}) {
     }
 
     const getGraphDataInPercentage = (e) => {
+        // 1. reduce dataset and append the latest data
+        // 2. get the designated data if the data is not null
         const data = [...graphData.filter((_, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]]
             .map(g => g ? g[e] : null)
-        console.log(e, data)
+
+        // if all data == null
+        if (data.filter(e => e != null).length === 0) {
+            return data
+        }
+
         const [min, max] = [Math.min(...data), Math.max(...data)]
         if (min === max)
             return new Array(data.length).fill(0)
@@ -209,7 +229,7 @@ export default function Home({redirectToLogin, user}) {
                     <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship} />
                     {/* Select Preset */}
                     <DropBox setFunction={setPreset} items={Object.keys(PRESETS)} defaultValue={preset} />
-                    {/* 시작 날짜 선택 */}
+                    {/* Start Date */}
                     <div className="w-100">
                         <DatePicker
                             selected={startDate}
@@ -219,10 +239,10 @@ export default function Home({redirectToLogin, user}) {
                     </div>
                 </div>
                 <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end justify-content-lg-center">
-                    {/* 시작 시간 선택 */}
+                    {/* Start Time */}
                     <TimePicker setTime={setStartTime} timeState={startTime} flag={startTimeFlag} setFlag={setStartTimeFlag} />
                     <span className="text-white mx-2">~</span>
-                    {/* 끝 날짜 선택 */}
+                    {/* End Date */}
                     {/*<div className="me-2">*/}
                     {/*    <DatePicker*/}
                     {/*        selected={endDate}*/}
@@ -230,18 +250,18 @@ export default function Home({redirectToLogin, user}) {
                     {/*        customInput={<DatePickerButton/>}*/}
                     {/*    />*/}
                     {/*</div>*/}
-                    {/* 끝 시간 선택 */}
+                    {/* End Time */}
                     <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag} />
                 </div>
                 <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end">
-                    {/* 보이기 체크 */}
+                    {/* Switching visibility */}
                     <button className="btn btn-secondary me-2 w-100"
                             onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
                     <button className="btn btn-primary w-100"
                             onClick={() => modifyOnClick()}>Execute</button>
                 </div>
             </div>
-            {/* 그래프 */}
+            {/* Graph */}
             <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
                 <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
                     <h5 className="m-0 w-100">Chart view (in Percentage)</h5>
@@ -251,13 +271,14 @@ export default function Home({redirectToLogin, user}) {
                     <Chart
                         type='line'
                         data={{
+                            // reduce amount of data then append the latest element
                             labels: [...labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), labels[labels.length-1]],
                             datasets: PRESETS[preset].map(e => {
                                 return ({
                                     label: e,
                                     data: getGraphDataInPercentage(e),
                                     fill: false,
-                                    borderColor: '#' + (Math.random() * 0xFFFFFF << 0).toString(16),
+                                    borderColor: COLORS[e],
                                     tension: 0.1
                                 });
                             })
@@ -274,7 +295,7 @@ export default function Home({redirectToLogin, user}) {
                     />
                 </div>
             </div>
-            {/* 테이블 */}
+            {/* Table */}
             <div className={`m-0 card shadow-sm p-0 ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
                 <div className="card-header fw-bold text-center d-flex align-items-center">
                     <h5 className="m-0 w-100">Table view</h5>
@@ -300,7 +321,6 @@ export async function getServerSideProps({req, res}) {
     const cookies = new Cookies(req, res)
     const newAccessToken = tokenMiddleWare(accessToken, refreshToken, cookies)
     const user = getUserFromToken(newAccessToken);
-    console.log('USER:', user)
 
     return {
         props: {user}
