@@ -49,6 +49,14 @@ export async function getServerSideProps({req, res}) {
     const newAccessToken = tokenMiddleWare(accessToken, refreshToken, cookies)
     const user = getUserFromToken(newAccessToken);
 
+    if (user.ROLE !== 'admin') {
+        cookies.set('accessToken', null)
+        cookies.set('refreshToken', null)
+        return {
+            props: {redirectToLogin: true}
+        }
+    }
+
     return {
         props: {user}
     }

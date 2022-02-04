@@ -24,7 +24,7 @@ export default function Home({redirectToLogin, user}) {
             <a className="btn btn-danger">Login</a>
         </Link>
 
-        return <Error title="ERROR" message="You are not authorized to access this page." customTag={button} />
+        return <Error title="ERROR" message="You are not authorized to access this page." customTag={button}/>
     }
 
     if (user.SHIPS[0].HULLNUM == null) {
@@ -33,7 +33,8 @@ export default function Home({redirectToLogin, user}) {
             await router.replace('/user/login')
         }} className="btn btn-danger">Logout</button>
 
-        return <Error title="WARNING" message="Your account doesn't have any ship. Please contact to admin." customTag={button} />
+        return <Error title="WARNING" message="Your account doesn't have any ship. Please contact to admin."
+                      customTag={button}/>
     }
 
     const [ship, setShip] = useState(user.SHIPS[0].HULLNUM)
@@ -64,7 +65,7 @@ export default function Home({redirectToLogin, user}) {
 
     // Set column-unique colors
     const [COLORS, _] = useState(Array.from(new Set(PRESETS.Ballasting.concat(PRESETS.Deballasting)))
-        .reduce((o, key) => ({ ...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
+        .reduce((o, key) => ({...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-secondary w-100" onClick={onClick} ref={ref}>
@@ -92,9 +93,9 @@ export default function Home({redirectToLogin, user}) {
 
         const _startDate = startDate.getDate() < 10 ? '0' + startDate.getDate() : startDate.getDate()
         // const _endDate = endDate.getDate() < 10 ? '0' + endDate.getDate() : endDate.getDate()
-        const formattedStartTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${startTime.hh}:${startTime.mm}:00`
+        const formattedStartTime = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${_startDate} ${startTime.hh}:${startTime.mm}:00`
         // const formattedEndTime = `${endDate.getFullYear()}-${endDate.getMonth()+1}-${_endDate} 02:15:00`
-        const formattedEndTime = `${startDate.getFullYear()}-${startDate.getMonth()+1}-${_startDate} ${endTime.hh}:${endTime.mm}:00`
+        const formattedEndTime = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${_startDate} ${endTime.hh}:${endTime.mm}:00`
 
         const {data: {getGraphs}} = await client.query({
             query: gql`
@@ -189,14 +190,14 @@ export default function Home({redirectToLogin, user}) {
                     <li key={`start_time_item_${e}`}>
                         <small className="dropdown-item" onClick={() => {
                             setFlag(!flag)
-                            setTime(({mm}) => ({hh: e < 10 ? '0'+e : String(e), mm}));
+                            setTime(({mm}) => ({hh: e < 10 ? '0' + e : String(e), mm}));
                         }}>{e}:{timeState.mm}</small>
                     </li>
                 )) : [...Array(60).keys()].map(e => (
                     <li key={`start_time_item_${e}`}>
                         <small className="dropdown-item" onClick={() => {
                             setFlag(!flag)
-                            setTime(({hh}) => ({hh, mm: e < 10 ? '0'+e : String(e)}))
+                            setTime(({hh}) => ({hh, mm: e < 10 ? '0' + e : String(e)}))
                         }}>{timeState.hh}:{e < 10 ? '0' + e : e}</small>
                     </li>))}
             </ul>
@@ -206,7 +207,7 @@ export default function Home({redirectToLogin, user}) {
     const getGraphDataInPercentage = (e) => {
         // 1. reduce dataset and append the latest data
         // 2. get the designated data if the data is not null
-        const data = graphData.filter((_, i) => i % Math.ceil(labels.length/chartPointNumber) === 0)
+        const data = graphData.filter((_, i) => i % Math.ceil(labels.length / chartPointNumber) === 0)
             .map(g => g ? g[e] : null)
 
         // if all data == null
@@ -217,7 +218,19 @@ export default function Home({redirectToLogin, user}) {
         const [min, max] = [Math.min(...data), Math.max(...data)]
         if (min === max)
             return new Array(data.length).fill(0)
-        return data.map(d => (d-min)/(max-min)*100)
+        return data.map(d => (d - min) / (max - min) * 100)
+    }
+
+    const htmlLegendPlugin = {
+        id: 'htmlLegend',
+        afterUpdate(chart, args, options) {
+            // Reuse the built-in legendItems generator
+            const items = chart.options.plugins.legend.labels.generateLabels(chart);
+            items.forEach(i => {
+                console.log(i)
+                // todo: custom legends
+            })
+        }
     }
 
     return (
@@ -229,9 +242,9 @@ export default function Home({redirectToLogin, user}) {
             <div className={`row rounded-1 m-0 my-md-3 mt-lg-0 p-0 bg-dark ${utilStyles.bd_darkblue} shadow-sm`}>
                 <div className="col-lg col-xl-6 d-flex flex-row p-0 p-2 justify-content-center">
                     {/* Select Hull Num */}
-                    <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship} />
+                    <DropBox setFunction={setShip} items={user.SHIPS} defaultValue={ship}/>
                     {/* Select Preset */}
-                    <DropBox setFunction={setPreset} items={Object.keys(PRESETS)} defaultValue={preset} />
+                    <DropBox setFunction={setPreset} items={Object.keys(PRESETS)} defaultValue={preset}/>
                     {/* Start Date */}
                     <div className="w-100">
                         <DatePicker
@@ -241,9 +254,11 @@ export default function Home({redirectToLogin, user}) {
                         />
                     </div>
                 </div>
-                <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end justify-content-lg-center">
+                <div
+                    className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end justify-content-lg-center">
                     {/* Start Time */}
-                    <TimePicker setTime={setStartTime} timeState={startTime} flag={startTimeFlag} setFlag={setStartTimeFlag} />
+                    <TimePicker setTime={setStartTime} timeState={startTime} flag={startTimeFlag}
+                                setFlag={setStartTimeFlag}/>
                     <span className="text-white mx-2">~</span>
                     {/* End Date */}
                     {/*<div className="me-2">*/}
@@ -254,28 +269,31 @@ export default function Home({redirectToLogin, user}) {
                     {/*    />*/}
                     {/*</div>*/}
                     {/* End Time */}
-                    <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag} />
+                    <TimePicker setTime={setEndTime} timeState={endTime} flag={endTimeFlag} setFlag={setEndTimeFlag}/>
                 </div>
                 <div className="col-lg d-flex flex-row p-0 p-2 justify-content-center justify-content-md-end">
                     {/* Switching visibility */}
                     <button className="btn btn-secondary me-2 w-100"
                             onClick={() => setIsTable(!isTable)}>{isTable ? "Table" : "Chart"}</button>
                     <button className="btn btn-primary w-100"
-                            onClick={() => modifyOnClick()}>Execute</button>
+                            onClick={() => modifyOnClick()}>Execute
+                    </button>
                 </div>
             </div>
             {/* Graph */}
             <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
-                <div className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
+                <div
+                    className={`card-header text-center fw-bold d-flex flex-row align-items-center ${utilStyles.text_darkblue}`}>
                     <h5 className="m-0 w-100">Chart view (in Percentage)</h5>
-                    <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
+                    <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber}
+                           onChange={e => setChartPointNumber(parseInt(e.target.value))}/>
                 </div>
                 <div className="card-body p-0">
                     <Chart
                         type='line'
                         data={{
                             // reduce amount of data
-                            labels: labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0),
+                            labels: labels.filter((e, i) => i % Math.ceil(labels.length / chartPointNumber) === 0),
                             datasets: PRESETS[preset].map(e => {
                                 return ({
                                     label: e,
@@ -297,11 +315,12 @@ export default function Home({redirectToLogin, user}) {
                                     position: 'right',
                                     align: 'start',
                                     labels: {
-                                        padding: 15
+                                        padding: 10
                                     }
                                 }
                             }
-                    }}
+                        }}
+                        plugins={[htmlLegendPlugin]}
                     />
                 </div>
             </div>
@@ -309,10 +328,13 @@ export default function Home({redirectToLogin, user}) {
             <div className={`m-0 card shadow-sm p-0 ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
                 <div className="card-header fw-bold text-center d-flex align-items-center">
                     <h5 className="m-0 w-100">Table view</h5>
-                    <CsvDownload className="btn btn-success" data={graphData.map(e => {const {__typename, ...filtered} = e; return filtered})} children="CSV" filename='shipdata.csv' />
+                    <CsvDownload className="btn btn-success" data={graphData.map(e => {
+                        const {__typename, ...filtered} = e;
+                        return filtered
+                    })} children="CSV" filename='shipdata.csv'/>
                 </div>
                 <div className="card-body overflow-scroll p-0">
-                    <DataTable />
+                    <DataTable/>
                 </div>
             </div>
         </Layout>
