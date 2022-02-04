@@ -62,7 +62,9 @@ export default function Home({redirectToLogin, user}) {
         Deballasting: ['AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
     }
 
-    const [COLORS, _] = useState(PRESETS.Ballasting.reduce((o, key) => ({ ...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
+    // Set column-unique colors
+    const [COLORS, _] = useState(Array.from(new Set(PRESETS.Ballasting.concat(PRESETS.Deballasting)))
+        .reduce((o, key) => ({ ...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-secondary w-100" onClick={onClick} ref={ref}>
@@ -96,8 +98,8 @@ export default function Home({redirectToLogin, user}) {
 
         const {data: {getGraphs}} = await client.query({
             query: gql`
-                query Query($hullNum: Int!, $startTime: String!, $endTime: String!) {
-                    getGraphs(hullNum: $hullNum, startTime: $startTime, endTime: $endTime) {
+                query Query($hullNum: Int!, $startTime: String!, $endTime: String!, $preset: String!) {
+                    getGraphs(hullNum: $hullNum, startTime: $startTime, endTime: $endTime, preset: $preset) {
                         HULLNUM, TIME,
                         ${PRESETS[preset]}
                     }
@@ -106,7 +108,8 @@ export default function Home({redirectToLogin, user}) {
             variables: {
                 hullNum: ship,
                 startTime: formattedStartTime,
-                endTime: formattedEndTime
+                endTime: formattedEndTime,
+                preset
             }
         })
 
@@ -136,7 +139,7 @@ export default function Home({redirectToLogin, user}) {
         return <table className="table table-striped table-hover">
             <thead className="text-center">
             <tr>
-                <th>Ship Id</th>
+                <th>Hull_Num</th>
                 <th>Time</th>
                 {PRESETS[preset].map(e => <th key={e}>{e}</th>)}
             </tr>
@@ -203,7 +206,7 @@ export default function Home({redirectToLogin, user}) {
     const getGraphDataInPercentage = (e) => {
         // 1. reduce dataset and append the latest data
         // 2. get the designated data if the data is not null
-        const data = [...graphData.filter((_, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), graphData[graphData.length-1]]
+        const data = graphData.filter((_, i) => i % Math.ceil(labels.length/chartPointNumber) === 0)
             .map(g => g ? g[e] : null)
 
         // if all data == null
@@ -267,12 +270,12 @@ export default function Home({redirectToLogin, user}) {
                     <h5 className="m-0 w-100">Chart view (in Percentage)</h5>
                     <input type="number" className={`form-control ${styles.chartInput}`} defaultValue={chartPointNumber} onChange={e => setChartPointNumber(parseInt(e.target.value))} />
                 </div>
-                <div className="card-body">
+                <div className="card-body p-0">
                     <Chart
                         type='line'
                         data={{
-                            // reduce amount of data then append the latest element
-                            labels: [...labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0), labels[labels.length-1]],
+                            // reduce amount of data
+                            labels: labels.filter((e, i) => i % Math.ceil(labels.length/chartPointNumber) === 0),
                             datasets: PRESETS[preset].map(e => {
                                 return ({
                                     label: e,
@@ -285,10 +288,17 @@ export default function Home({redirectToLogin, user}) {
                         }}
                         options={{
                             maintainAspectRatio: false,
+                            layout: {
+                                padding: 5
+                            },
                             plugins: {
                                 legend: {
                                     display: true,
                                     position: 'right',
+                                    align: 'start',
+                                    labels: {
+                                        padding: 15
+                                    }
                                 }
                             }
                     }}
@@ -301,7 +311,7 @@ export default function Home({redirectToLogin, user}) {
                     <h5 className="m-0 w-100">Table view</h5>
                     <CsvDownload className="btn btn-success" data={graphData.map(e => {const {__typename, ...filtered} = e; return filtered})} children="CSV" filename='shipdata.csv' />
                 </div>
-                <div className="card-body overflow-scroll">
+                <div className="card-body overflow-scroll p-0">
                     <DataTable />
                 </div>
             </div>

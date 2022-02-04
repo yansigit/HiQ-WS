@@ -98,11 +98,11 @@ export const typeDefs = gql`
         REC4000: Int,
     }
     
-    type OPC_REALTIME {
-        
-    }
+#    type OPC_REALTIME {
+#        TEST: Int
+#    }
 
     type Query {
-        getGraphs(hullNum: Int!, startTime: String!, endTime: String!): [Graph]
+        getGraphs(hullNum: Int!, startTime: String!, endTime: String!, preset: String!): [Graph]
     }
 `
