@@ -23,6 +23,7 @@ export const resolvers = {
         async getGraphs(parent, args, context, info) {
             const {hullNum, startTime, endTime, preset} = args
             const whereDict = {
+                Custom: '',
                 Deballasting: 'NVL(P_132_FD, 0) + NVL(P_232_FD, 0) + NVL(P_332_FD, 0) > 0',
                 Ballasting: 'NVL(REC1000, 0) + NVL(REC2000, 0) + NVL(REC3000, 0) + NVL(REC4000, 0) > 0'
             }
