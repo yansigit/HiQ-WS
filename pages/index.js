@@ -42,7 +42,7 @@ export default function Home({redirectToLogin, user}) {
     const [ship, setShip] = useState(user.SHIPS[0].HULLNUM)
     const [startDate, setStartDate] = useState(new Date());
     // const [endDate, setEndDate] = useState(new Date());
-    const [preset, setPreset] = useState('Custom')
+    const [preset, setPreset] = useState('Deballasting')
     const [startTime, setStartTime] = useState({hh: '00', mm: '00'})
     const [startTimeFlag, setStartTimeFlag] = useState(true)
     const [endTime, setEndTime] = useState({hh: '00', mm: '00'})
@@ -273,7 +273,7 @@ export default function Home({redirectToLogin, user}) {
     const GraphBox = ({preProcessor, excludeFunc}) => {
         const [processor, setProcessor] = useState(() => preProcessor)
 
-        return <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${isTable ? "d-none" : null}`}>
+        return <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box}`}>
             <div
                 className={`m-0 card-header text-center fw-bold row justify-content-end align-items-center ${utilStyles.text_darkblue}`}>
                 <button className="col-auto btn btn-primary me-2" onClick={() => setProcessor(processor ? null : () => preProcessor)}>
@@ -292,7 +292,7 @@ export default function Home({redirectToLogin, user}) {
                         datasets: PRESETS[preset].filter(excludeFunc).map(e => {
                             return ({
                                 label: e,
-                                data: processor ? processor(e) : graphData.map(d => d[e]),
+                                data: processor ? processor(e) : graphData.filter((_, i) => i % Math.ceil(labels.length / chartPointNumber) === 0).map(g => g ? g[e] : null),
                                 fill: false,
                                 borderColor: COLORS[e],
                                 tension: 0.1
@@ -320,7 +320,7 @@ export default function Home({redirectToLogin, user}) {
             </div>
         </div>;
     }
-    const TableBox = () => <div className={`m-0 card shadow-sm p-0 ${styles.tableBox} ${!isTable ? "d-none" : null}`}>
+    const TableBox = () => <div className={`m-0 card shadow-sm p-0 ${styles.tableBox}`}>
         <div className="card-header fw-bold text-center d-flex align-items-center">
             <h5 className="m-0 w-100">Table view</h5>
             <CsvDownload className="btn btn-success" data={graphData.map(e => {
@@ -339,8 +339,7 @@ export default function Home({redirectToLogin, user}) {
                 <title>{siteTitle}</title>
             </Head>
             <SettingBar />
-            <GraphBox preProcessor={getGraphDataInPercentage} excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'} />
-            <TableBox />
+            {isTable ? <TableBox /> : <GraphBox preProcessor={getGraphDataInPercentage} excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'} />}
         </Layout>
     )
 }
