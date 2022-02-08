@@ -3,7 +3,7 @@ import { resolvers } from "./resolvers";
 import { typeDefs } from "./schemas";
 
 const apolloServer = new ApolloServer({ typeDefs, resolvers, context: ({ req, /* res */ }) => {
-        
+
     }
 })
 
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', 'true')
     res.setHeader(
         'Access-Control-Allow-Origin',
-        'https://studio.apollographql.com'
+        '*'
     )
     res.setHeader(
         'Access-Control-Allow-Headers',

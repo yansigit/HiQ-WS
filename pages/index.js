@@ -97,11 +97,11 @@ export default function Home({redirectToLogin, user}) {
         // const formattedEndTime = `${endDate.getFullYear()}-${endDate.getMonth()+1}-${_endDate} 02:15:00`
         const formattedEndTime = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${_startDate} ${endTime.hh}:${endTime.mm}:00`
 
-        const {data: {getGraphs}} = await client.query({
+        let {data: {getGraphs}} = await client.query({
             query: gql`
                 query Query($hullNum: Int!, $startTime: String!, $endTime: String!, $preset: String!) {
                     getGraphs(hullNum: $hullNum, startTime: $startTime, endTime: $endTime, preset: $preset) {
-                        HULLNUM, TIME,
+                        HULLNUM, TIME, DATETIME,
                         ${PRESETS[preset]}
                     }
                 }
@@ -114,9 +114,11 @@ export default function Home({redirectToLogin, user}) {
             }
         })
 
-        // setLabels([...Array(timeDiff).keys()])
+        if(!getGraphs)
+            getGraphs = []
+
         setGraphData(getGraphs)
-        setLabels(getGraphs.map(g => g.TIME.split(' ')[1]))
+        setLabels(getGraphs.map(g => new Date(g.DATETIME).toTimeString().split(' ')[0]))
     }
 
     useEffect(async () => {
@@ -127,12 +129,14 @@ export default function Home({redirectToLogin, user}) {
         const GenerateTableRows = () => {
             let i = 1
             return graphData.map(e => {
-                const {HULLNUM, TIME, ...DATA} = e
+                const {HULLNUM, TIME, DATETIME, ...DATA} = e
                 delete DATA.__typename
+                const _t = new Date(DATETIME)
+                const TimeString = `${_t.getFullYear()}/${_t.getMonth()+1}/${_t.getDate()} ${_t.toTimeString().split(' ')[0]}`
                 return <tr key={`tableRow${i++}`}>
                     <td>{HULLNUM}</td>
-                    <td>{TIME}</td>
-                    {Object.keys(DATA).map(e => <td>{DATA[e] ? DATA[e] : 'NULL'}</td>)}
+                    <td>{TimeString}</td>
+                    {Object.keys(DATA).map(e => <td>{DATA[e] ? DATA[e] : ''}</td>)}
                 </tr>
             });
         }
@@ -227,7 +231,6 @@ export default function Home({redirectToLogin, user}) {
             // Reuse the built-in legendItems generator
             const items = chart.options.plugins.legend.labels.generateLabels(chart);
             items.forEach(i => {
-                console.log(i)
                 // todo: custom legends
             })
         }

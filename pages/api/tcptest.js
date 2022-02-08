@@ -16,7 +16,6 @@ export default async function handler(req, res) {
     })
 
     socket.on('connect', () => {
-        console.log('connected')
         socket.write('hi')
     })
 
