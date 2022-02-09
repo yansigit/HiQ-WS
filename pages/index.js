@@ -4,7 +4,7 @@ import 'chart.js/auto'
 import {Chart} from "react-chartjs-2";
 import styles from './index.module.css'
 import utilStyles from '../styles/utils.module.css'
-import {forwardRef, useEffect, useState} from "react";
+import {forwardRef, useEffect, useRef, useState} from "react";
 import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
 import {getUserFromToken, tokenMiddleWare} from "../lib/token";
@@ -51,18 +51,22 @@ export default function Home({redirectToLogin, user}) {
     const [graphData, setGraphData] = useState([])
     const [labels, setLabels] = useState([])
     const [chartPointNumber, setChartPointNumber] = useState(100)
+    const [isGraphDisplayPercentage, setGraphDisplayPercentage] = useState(true)
+    const [_forceUpdate, forceUpdater] = useState(0)
+    const chartPointNumberRef = useRef()
 
     // Constraints
+    const AllColumns = ['HULLNUM','DATETIME','AIT_1121','AIT_1122','AIT_1123','AIT_151','AIT_251','AIT_351','AP_LVL_01','CT_1111',
+        'CT_1751','FCV_1131_CMD','FCV_1131_FD','FCV_1211_CMD','FCV_1211_FD','FCV_1751_CMD','FCV_1751_FD','FCV_3131_CMD',
+        'FCV_3131_FD','FCV_3211_CMD','FCV_3211_FD','FIT_1131','FIT_1211','FIT_2131','FIT_2211','FIT_3131','FIT_3211',
+        'GPS_LAT','GPS_LON','LIT_1311','PIT_1211','PIT_1212','PIT_2211','PIT_2212','PIT_3211','PIT_3212','PT_1121','PT_1721',
+        'PT_1722','P_132_CMD','P_132_FD','P_232_CMD','P_232_FD','P_332_CMD','P_332_FD','REC1017','REC1018','REC1019','REC1020',
+        'REC1021','REC1027','REC1028','REC1029','REC1030','REC1031','REC1043','REC2017','REC2018','REC2019','REC2020',
+        'REC2021','REC2027','REC2028','REC2029','REC2030','REC2031','REC2043','REC3017','REC3018','REC3019','REC3020',
+        'REC3021','REC3027','REC3028','REC3029','REC3030','REC3031','REC3043','REC4017','REC4018','REC4019','REC4020',
+        'REC4021','REC4027','REC4028','REC4029','REC4030','REC4031','REC4043','TE_1111','REC1000','REC2000','REC3000','REC4000']
     const PRESETS = {
-        Custom: ['HULLNUM','DATETIME','AIT_1121','AIT_1122','AIT_1123','AIT_151','AIT_251','AIT_351','AP_LVL_01','CT_1111',
-            'CT_1751','FCV_1131_CMD','FCV_1131_FD','FCV_1211_CMD','FCV_1211_FD','FCV_1751_CMD','FCV_1751_FD','FCV_3131_CMD',
-            'FCV_3131_FD','FCV_3211_CMD','FCV_3211_FD','FIT_1131','FIT_1211','FIT_2131','FIT_2211','FIT_3131','FIT_3211',
-            'GPS_LAT','GPS_LON','LIT_1311','PIT_1211','PIT_1212','PIT_2211','PIT_2212','PIT_3211','PIT_3212','PT_1121','PT_1721',
-            'PT_1722','P_132_CMD','P_132_FD','P_232_CMD','P_232_FD','P_332_CMD','P_332_FD','REC1017','REC1018','REC1019','REC1020',
-            'REC1021','REC1027','REC1028','REC1029','REC1030','REC1031','REC1043','REC2017','REC2018','REC2019','REC2020',
-            'REC2021','REC2027','REC2028','REC2029','REC2030','REC2031','REC2043','REC3017','REC3018','REC3019','REC3020',
-            'REC3021','REC3027','REC3028','REC3029','REC3030','REC3031','REC3043','REC4017','REC4018','REC4019','REC4020',
-            'REC4021','REC4027','REC4028','REC4029','REC4030','REC4031','REC4043','TE_1111','REC1000','REC2000','REC3000','REC4000'],
+        // Custom: AllColumns,
         Ballasting: ['HULLNUM','DATETIME','AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
             'FIT_3211', 'FIT_1131', 'FIT_2131', 'FIT_3131', 'REC1017',
             'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
@@ -71,7 +75,7 @@ export default function Home({redirectToLogin, user}) {
         Deballasting: ['HULLNUM','DATETIME','AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
     }
     // Set column-unique colors
-    const [COLORS, _] = useState(PRESETS.Custom.reduce((o, key) => ({...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
+    const [COLORS, _] = useState(AllColumns.reduce((o, key) => ({...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
 
     const DatePickerButton = forwardRef(({value, onClick}, ref) => (
         <button className="btn btn-secondary w-100" onClick={onClick} ref={ref}>
@@ -80,8 +84,9 @@ export default function Home({redirectToLogin, user}) {
     ))
 
     useEffect(async () => {
-        await modifyOnClick();
-    }, [ship, preset, startDate])
+        await modifyOnClick()
+        chartPointNumberRef.current ? chartPointNumberRef.current.focus() : null
+    }, [ship, preset, startDate, isGraphDisplayPercentage, _forceUpdate])
 
 
     // Methods
@@ -270,16 +275,16 @@ export default function Home({redirectToLogin, user}) {
             </button>
         </div>
     </div>
-    const GraphBox = ({preProcessor, excludeFunc}) => {
-        const [processor, setProcessor] = useState(() => preProcessor)
+    const GraphBox = ({preProcessor, excludeFunc, goLeftFunc, goRightFunc}) => {
 
         return <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box}`}>
             <div
                 className={`m-0 card-header text-center fw-bold row justify-content-end align-items-center ${utilStyles.text_darkblue}`}>
-                <button className="col-auto btn btn-primary me-2" onClick={() => setProcessor(processor ? null : () => preProcessor)}>
-                    {processor ? 'Percentage' : 'Plain'}
+                <button className="col-auto btn btn-primary me-2" onClick={() => setGraphDisplayPercentage(!isGraphDisplayPercentage)}>
+                    {isGraphDisplayPercentage ? 'Percentage' : 'Plain'}
                 </button>
                 <input type="number" className={`col-auto form-control ${styles.chartInput}`} defaultValue={chartPointNumber}
+                       ref={chartPointNumberRef}
                        onChange={e => setChartPointNumber(parseInt(e.target.value))}/>
             </div>
             <div className="card-body p-0">
@@ -292,7 +297,7 @@ export default function Home({redirectToLogin, user}) {
                         datasets: PRESETS[preset].filter(excludeFunc).map(e => {
                             return ({
                                 label: e,
-                                data: processor ? processor(e) : graphData.filter((_, i) => i % Math.ceil(labels.length / chartPointNumber) === 0).map(g => g ? g[e] : null),
+                                data: isGraphDisplayPercentage ? preProcessor(e) : graphData.filter((_, i) => i % Math.ceil(labels.length / chartPointNumber) === 0).map(g => g ? g[e] : null),
                                 fill: false,
                                 borderColor: COLORS[e],
                                 tension: 0.1
@@ -318,6 +323,10 @@ export default function Home({redirectToLogin, user}) {
                     plugins={[htmlLegendPlugin]}
                 />
             </div>
+            <div className="card-footer text-center">
+                <button className="btn btn-secondary me-1" onClick={goLeftFunc}>◀</button>
+                <button className="btn btn-secondary ms-1" onClick={goRightFunc}>▶</button>
+            </div>
         </div>;
     }
     const TableBox = () => <div className={`m-0 card shadow-sm p-0 ${styles.tableBox}`}>
@@ -339,7 +348,19 @@ export default function Home({redirectToLogin, user}) {
                 <title>{siteTitle}</title>
             </Head>
             <SettingBar />
-            {isTable ? <TableBox /> : <GraphBox preProcessor={getGraphDataInPercentage} excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'} />}
+            {isTable ? <TableBox /> :
+                <GraphBox preProcessor={getGraphDataInPercentage}
+                          goLeftFunc={async () => {
+                              parseInt(startTime.hh) > 0 ? setStartTime({hh: (parseInt(startTime.hh) - 1).toString(), mm: startTime.mm}) : null
+                              parseInt(endTime.hh) > 1 ? setEndTime({hh: (parseInt(endTime.hh) - 1).toString(), mm: endTime.mm}): null
+                              forceUpdater(_forceUpdate+1)
+                          }}
+                          goRightFunc={async () => {
+                              parseInt(startTime.hh) < 22 ? setStartTime({hh: (parseInt(startTime.hh) + 1).toString(), mm: startTime.mm}) : null
+                              parseInt(endTime.hh) < 23 ? setEndTime({hh: (parseInt(endTime.hh) + 1).toString(), mm: endTime.mm}) : null
+                              forceUpdater(_forceUpdate+1)
+                          }}
+                          excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'} />}
         </Layout>
     )
 }
