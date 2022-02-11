@@ -34,8 +34,8 @@ export const resolvers = {
                 .whereRaw('DATETIME between TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\') and TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\')', [startTime, endTime])
                 .select()
             const result = await query
-            console.log(query.toQuery())
-            console.log(result ? result[0] : '값 없음')
+            // console.log(query.toQuery())
+            // console.log(result ? result[0] : '값 없음')
             return query;
         }
     }

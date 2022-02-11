@@ -1,6 +1,6 @@
 .layoutBody {
     overflow-x: hidden;
-    background: linear-gradient(to bottom, #e0e3ed 0%, #e0e3ed 333px, white 100%);
+    background: linear-gradient(to bottom, #e0e3ed 0%, #e0e3ed 333px, white 100%) !important;
 }
 
 @media (min-width: 992px) and (max-width: 1680px) {
@@ -12,7 +12,12 @@
     }
 }
 
-
+@media (min-width: 1680px) {
+    .mainBox {
+        width: 1680px;
+        align-self: center;
+    }
+}
 
 .footer {
     color: white;

@@ -17,22 +17,44 @@ export default function Admin({redirectToLogin, user}) {
     const [onLive, setLive] = useState(false)
 
     return <Layout user={user}>
-        <div className="card bg-white">
-            <h5 className="card-header text-center">Start real-time monitoring</h5>
+        <div className="card bg-white mb-2">
+            <h5 className="card-header text-center">Import CSV Files</h5>
             <div className="card-body row align-items-center justify-content-center">
                 <div className="col-auto">
-                    <label>Hull Number</label>
-                </div>
-                <div className="col-auto">
-                    <input type="number" className="form-control" />
-                </div>
-                <div className="col-auto">
-                    <button onClick={() => setLive(!onLive)} className={`btn ${onLive ? 'btn-secondary' : 'btn-warning'}`}>
-                        {onLive ? 'Stop' : 'Start'}
+                    <button onClick={() => {
+                        fetch('/api/tcptest').then(e => e.json()).then(e => {
+                            if (e.success) {
+                                alert("Successfully requested the function")
+                            }
+                            else if (e.error) {
+                                alert("error: " + e.error)
+                            }
+                        })
+                    }} className={`btn btn-primary`}>
+                        Start
                     </button>
                 </div>
             </div>
         </div>
+        {/*<div className="card bg-white">*/}
+        {/*    <h5 className="card-header text-center">Start real-time monitoring (WIP)</h5>*/}
+        {/*    <div className="card-body row align-items-center justify-content-center">*/}
+        {/*        <div className="col-auto">*/}
+        {/*            <label>Hull Number</label>*/}
+        {/*        </div>*/}
+        {/*        <div className="col-auto">*/}
+        {/*            <input type="number" className="form-control" />*/}
+        {/*        </div>*/}
+        {/*        <div className="col-auto">*/}
+        {/*            <button onClick={() => {*/}
+        {/*                setLive(!onLive);*/}
+        {/*                alert("CSV 일괄저장 실행을 요청하였습니다")*/}
+        {/*            }} className={`btn ${onLive ? 'btn-secondary' : 'btn-warning'}`}>*/}
+        {/*                {onLive ? 'Stop' : 'Start'}*/}
+        {/*            </button>*/}
+        {/*        </div>*/}
+        {/*    </div>*/}
+        {/*</div>*/}
     </Layout>
 }
 
