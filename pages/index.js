@@ -14,6 +14,7 @@ import {useRouter} from "next/router";
 import {GraphBox, TableBox, SettingBar} from "../components/dashboard";
 import {useRecoilState, useRecoilValue} from "recoil";
 import {chartHtmlLegends, chartLabelState} from "../states/states";
+import {generateDarkColorHex} from "../lib/common";
 
 export default function Home({redirectToLogin, user}) {
     // Router
@@ -118,10 +119,43 @@ export default function Home({redirectToLogin, user}) {
     const htmlLegendPlugin = {
         id: 'htmlLegend',
         afterUpdate(chart, args, options) {
-            const items = chart.options.plugins.legend.labels.generateLabels(chart);
-            const span = document.createElement('span')
-            span.innerText = 'Test'
-            htmlLegendRef.current.innerHTML = span.outerHTML
+            // const items = chart.options.plugins.legend.labels.generateLabels(chart);
+            // const div = document.createElement('div')
+            // div.className = 'w-100 text-center'
+            // div.setAttribute('role', 'group')
+            // items.forEach(i => {
+            //     chart.setDatasetVisibility(i.datasetIndex, false)
+            //     console.log('update')
+            //
+            //     const btn = document.createElement('input')
+            //     btn.type = 'checkbox'
+            //     btn.id = 'legendBtn' + i.datasetIndex
+            //     btn.className = 'btn-check'
+            //
+            //     const label = document.createElement('label')
+            //     label.className = 'btn p-1 m-1'
+            //     label.setAttribute('for', 'legendBtn' + i.datasetIndex)
+            //     label.innerText = i.text
+            //     label.style.backgroundColor = COLORS[i.text]
+            //     label.style.color = 'white'
+            //     label.style.fontStyle = 'italic'
+            //     label.style.font = 'menu'
+            //     label.style.textDecoration = 'line-through'
+            //
+            //     btn.addEventListener('change', e => {
+            //         // chart.setDatasetVisibility(i.datasetIndex, e.currentTarget.checked);
+            //         i.hidden = e.currentTarget.checked
+            //         chart.update()
+            //         label.style.textDecoration = e.currentTarget.checked ? 'none' : 'line-through'
+            //         console.log(e.currentTarget.checked)
+            //     })
+            //
+            //     div.appendChild(btn)
+            //     div.appendChild(label)
+            // })
+            //
+            // htmlLegendRef.current.innerHTML = ''
+            // htmlLegendRef.current.appendChild(div)
         }
     }
 
@@ -146,7 +180,7 @@ export default function Home({redirectToLogin, user}) {
     }
     const [COLORS, _] = useState(AllColumns.reduce((o, key) => ({
         ...o,
-        [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)
+        [key]: generateDarkColorHex()
     }), {}))
     const SETTING_BAR_PROPS = {
         setShip, ship, user, setPreset, PRESETS, preset,
@@ -162,7 +196,7 @@ export default function Home({redirectToLogin, user}) {
             </Head>
             <SettingBar options={SETTING_BAR_PROPS}/>
             <div className="card mb-3">
-                <div className="card-body" ref={htmlLegendRef}>
+                <div className="card-body p-1" ref={htmlLegendRef}>
                 </div>
             </div>
             {isTable ? <TableBox graphData={graphData} PRESETS={PRESETS} preset={preset}/> :
