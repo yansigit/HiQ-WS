@@ -1,11 +1,8 @@
 import Head from 'next/head'
+import React from "react";
 import Layout, {siteTitle} from '../components/layout'
 import 'chart.js/auto'
-import {Chart} from "react-chartjs-2";
-import styles from './index.module.css'
-import utilStyles from '../styles/utils.module.css'
 import {forwardRef, useEffect, useRef, useState} from "react";
-import DatePicker from "react-datepicker"
 import 'react-datepicker/dist/react-datepicker.css'
 import {getUserFromToken, tokenMiddleWare} from "../lib/token";
 import Link from "next/link";
@@ -13,9 +10,10 @@ import Error from '../components/error'
 import Cookies from "cookies";
 import {gql} from "@apollo/client";
 import client from "./apollo-client";
-import CsvDownload from 'react-json-to-csv'
 import {useRouter} from "next/router";
 import {GraphBox, TableBox, SettingBar} from "../components/dashboard";
+import {useRecoilState, useRecoilValue} from "recoil";
+import {chartHtmlLegends, chartLabelState} from "../states/states";
 
 export default function Home({redirectToLogin, user}) {
     // Router
@@ -55,6 +53,7 @@ export default function Home({redirectToLogin, user}) {
     const [isGraphDisplayPercentage, setGraphDisplayPercentage] = useState(true)
     const [_forceUpdate, forceUpdater] = useState(0)
     const chartPointNumberRef = useRef()
+    const htmlLegendRef = useRef()
 
     useEffect(async () => {
         await modifyOnClick()
@@ -94,7 +93,7 @@ export default function Home({redirectToLogin, user}) {
             }
         })
 
-        if(!getGraphs)
+        if (!getGraphs)
             getGraphs = []
 
         setGraphData(getGraphs)
@@ -119,61 +118,89 @@ export default function Home({redirectToLogin, user}) {
     const htmlLegendPlugin = {
         id: 'htmlLegend',
         afterUpdate(chart, args, options) {
-            // Reuse the built-in legendItems generator
             const items = chart.options.plugins.legend.labels.generateLabels(chart);
-            items.forEach(i => {
-                // todo: custom legends
-            })
+            const span = document.createElement('span')
+            span.innerText = 'Test'
+            htmlLegendRef.current.innerHTML = span.outerHTML
         }
     }
 
     // Constraints
-    const AllColumns = ['HULLNUM','DATETIME','AIT_1121','AIT_1122','AIT_1123','AIT_151','AIT_251','AIT_351','AP_LVL_01','CT_1111',
-        'CT_1751','FCV_1131_CMD','FCV_1131_FD','FCV_1211_CMD','FCV_1211_FD','FCV_1751_CMD','FCV_1751_FD','FCV_3131_CMD',
-        'FCV_3131_FD','FCV_3211_CMD','FCV_3211_FD','FIT_1131','FIT_1211','FIT_2131','FIT_2211','FIT_3131','FIT_3211',
-        'GPS_LAT','GPS_LON','LIT_1311','PIT_1211','PIT_1212','PIT_2211','PIT_2212','PIT_3211','PIT_3212','PT_1121','PT_1721',
-        'PT_1722','P_132_CMD','P_132_FD','P_232_CMD','P_232_FD','P_332_CMD','P_332_FD','REC1017','REC1018','REC1019','REC1020',
-        'REC1021','REC1027','REC1028','REC1029','REC1030','REC1031','REC1043','REC2017','REC2018','REC2019','REC2020',
-        'REC2021','REC2027','REC2028','REC2029','REC2030','REC2031','REC2043','REC3017','REC3018','REC3019','REC3020',
-        'REC3021','REC3027','REC3028','REC3029','REC3030','REC3031','REC3043','REC4017','REC4018','REC4019','REC4020',
-        'REC4021','REC4027','REC4028','REC4029','REC4030','REC4031','REC4043','TE_1111','REC1000','REC2000','REC3000','REC4000']
+    const AllColumns = ['HULLNUM', 'DATETIME', 'AIT_1121', 'AIT_1122', 'AIT_1123', 'AIT_151', 'AIT_251', 'AIT_351', 'AP_LVL_01', 'CT_1111',
+        'CT_1751', 'FCV_1131_CMD', 'FCV_1131_FD', 'FCV_1211_CMD', 'FCV_1211_FD', 'FCV_1751_CMD', 'FCV_1751_FD', 'FCV_3131_CMD',
+        'FCV_3131_FD', 'FCV_3211_CMD', 'FCV_3211_FD', 'FIT_1131', 'FIT_1211', 'FIT_2131', 'FIT_2211', 'FIT_3131', 'FIT_3211',
+        'GPS_LAT', 'GPS_LON', 'LIT_1311', 'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211', 'PIT_3212', 'PT_1121', 'PT_1721',
+        'PT_1722', 'P_132_CMD', 'P_132_FD', 'P_232_CMD', 'P_232_FD', 'P_332_CMD', 'P_332_FD', 'REC1017', 'REC1018', 'REC1019', 'REC1020',
+        'REC1021', 'REC1027', 'REC1028', 'REC1029', 'REC1030', 'REC1031', 'REC1043', 'REC2017', 'REC2018', 'REC2019', 'REC2020',
+        'REC2021', 'REC2027', 'REC2028', 'REC2029', 'REC2030', 'REC2031', 'REC2043', 'REC3017', 'REC3018', 'REC3019', 'REC3020',
+        'REC3021', 'REC3027', 'REC3028', 'REC3029', 'REC3030', 'REC3031', 'REC3043', 'REC4017', 'REC4018', 'REC4019', 'REC4020',
+        'REC4021', 'REC4027', 'REC4028', 'REC4029', 'REC4030', 'REC4031', 'REC4043', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000']
     const PRESETS = {
         // Custom: AllColumns,
-        Ballasting: ['HULLNUM','DATETIME','AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
+        Ballasting: ['HULLNUM', 'DATETIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
             'FIT_3211', 'FIT_1131', 'FIT_2131', 'FIT_3131', 'REC1017',
             'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
             'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211',
             'PIT_3212', 'CT_1111', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000'],
-        Deballasting: ['HULLNUM','DATETIME','AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
+        Deballasting: ['HULLNUM', 'DATETIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
     }
-    const [COLORS, _] = useState(AllColumns.reduce((o, key) => ({...o, [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)}), {}))
-    const SETTING_BAR_PROPS = {setShip, ship, user, setPreset, PRESETS, preset,
+    const [COLORS, _] = useState(AllColumns.reduce((o, key) => ({
+        ...o,
+        [key]: '#' + (Math.random() * 0xFFFFFF << 0).toString(16)
+    }), {}))
+    const SETTING_BAR_PROPS = {
+        setShip, ship, user, setPreset, PRESETS, preset,
         setStartTime, startTime, startTimeFlag, setStartTimeFlag,
         setEndTime, endTime, endTimeFlag, setEndTimeFlag, setIsTable, isTable, modifyOnClick,
-        startDate, setStartDate}
-    const GRAPH_BOX_PROPS = {setGraphDisplayPercentage, isGraphDisplayPercentage, chartPointNumber,
-        chartPointNumberRef, setChartPointNumber, PRESETS, preset, labels, COLORS, graphData, htmlLegendPlugin}
+        startDate, setStartDate
+    }
 
     return (
         <Layout user={user}>
             <Head>
                 <title>{siteTitle}</title>
             </Head>
-            <SettingBar options={SETTING_BAR_PROPS} />
-            {isTable ? <TableBox graphData={graphData} PRESETS={PRESETS} preset={preset} /> :
+            <SettingBar options={SETTING_BAR_PROPS}/>
+            <div className="card mb-3">
+                <div className="card-body" ref={htmlLegendRef}>
+                </div>
+            </div>
+            {isTable ? <TableBox graphData={graphData} PRESETS={PRESETS} preset={preset}/> :
                 <GraphBox preProcessor={getGraphDataInPercentage}
                           goLeftFunc={async () => {
-                              parseInt(startTime.hh) > 0 ? setStartTime({hh: (parseInt(startTime.hh) - 1).toString(), mm: startTime.mm}) : null
-                              parseInt(endTime.hh) > 1 ? setEndTime({hh: (parseInt(endTime.hh) - 1).toString(), mm: endTime.mm}): null
-                              forceUpdater(_forceUpdate+1)
+                              parseInt(startTime.hh) > 0 ? setStartTime({
+                                  hh: (parseInt(startTime.hh) - 1).toString(),
+                                  mm: startTime.mm
+                              }) : null
+                              parseInt(endTime.hh) > 1 ? setEndTime({
+                                  hh: (parseInt(endTime.hh) - 1).toString(),
+                                  mm: endTime.mm
+                              }) : null
+                              forceUpdater(_forceUpdate + 1)
                           }}
                           goRightFunc={async () => {
-                              parseInt(startTime.hh) < 22 ? setStartTime({hh: (parseInt(startTime.hh) + 1).toString(), mm: startTime.mm}) : null
-                              parseInt(endTime.hh) < 23 ? setEndTime({hh: (parseInt(endTime.hh) + 1).toString(), mm: endTime.mm}) : null
-                              forceUpdater(_forceUpdate+1)
+                              parseInt(startTime.hh) < 22 ? setStartTime({
+                                  hh: (parseInt(startTime.hh) + 1).toString(),
+                                  mm: startTime.mm
+                              }) : null
+                              parseInt(endTime.hh) < 23 ? setEndTime({
+                                  hh: (parseInt(endTime.hh) + 1).toString(),
+                                  mm: endTime.mm
+                              }) : null
+                              forceUpdater(_forceUpdate + 1)
                           }}
                           excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'}
-                          options={GRAPH_BOX_PROPS}
+                          setGraphDisplayPercentage={setGraphDisplayPercentage}
+                          isGraphDisplayPercentage={isGraphDisplayPercentage}
+                          chartPointNumber={chartPointNumber}
+                          chartPointNumberRef={chartPointNumberRef}
+                          setChartPointNumber={setChartPointNumber}
+                          PRESETS={PRESETS}
+                          preset={preset}
+                          labels={labels}
+                          COLORS={COLORS}
+                          graphData={graphData}
+                          htmlLegendPlugin={htmlLegendPlugin}
                 />}
         </Layout>
     )

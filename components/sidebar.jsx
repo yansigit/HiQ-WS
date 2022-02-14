@@ -39,13 +39,13 @@ export default function Sidebar({user, className}) {
                     Important Logs
                 </div>
                 <div className="card-body">
-                    <ul className={`list-group rounded-0 ${styles.log_box}`}>
-                        <li className="list-group-item p-2 text-danger">[ALERT] Neque porro quisquam est qui dolorem ipsum quia </li>
-                        <li className="list-group-item p-2 text-danger">[NOTICE] Vestibulum ante ipsum primis in faucibus</li>
-                        <li className="list-group-item p-2 text-danger">[ALERT] dolor nisi auctor mi, vitae pulvinar nunc eros at</li>
-                        <li className="list-group-item p-2 text-danger">[ALERT] ullamcorper justo. Vivamus quis erat pharetra</li>
-                        <li className="list-group-item p-2 text-danger">[NOTICE] Maecenas posuere dignissim tempor</li>
-                    </ul>
+                    <div className={`list-group rounded-0 ${styles.log_box}`}>
+                        <a href="#" className="list-group-item list-group-item-action p-2 text-danger">[ALERT] Neque porro quisquam est qui dolorem ipsum quia </a>
+                        <a href="#" className="list-group-item list-group-item-action p-2 text-danger">[NOTICE] Vestibulum ante ipsum primis in faucibus</a>
+                        <a href="#" className="list-group-item list-group-item-action p-2 text-danger">[ALERT] dolor nisi auctor mi, vitae pulvinar nunc eros at</a>
+                        <a href="#" className="list-group-item list-group-item-action p-2 text-danger">[ALERT] ullamcorper justo. Vivamus quis erat pharetra</a>
+                        <a href="#" className="list-group-item list-group-item-action p-2 text-danger">[NOTICE] Maecenas posuere dignissim tempor</a>
+                    </div>
                     <button className="btn btn-light w-100 mt-2">More</button>
                 </div>
             </div>

@@ -4,6 +4,7 @@ import {Chart} from "react-chartjs-2";
 import CsvDownload from "react-json-to-csv";
 import DatePicker from "react-datepicker";
 import {forwardRef} from "react";
+import React from "react";
 
 export const SettingBar = ({options}) => {
     const {setShip, ship, user, setPreset, PRESETS, preset,
@@ -53,19 +54,19 @@ export const SettingBar = ({options}) => {
     </div>;
 }
 
-export const GraphBox = ({preProcessor, excludeFunc, goLeftFunc, goRightFunc,
-                             options
-                         }) => {
-    const {setGraphDisplayPercentage, isGraphDisplayPercentage, chartPointNumber,
-        chartPointNumberRef, setChartPointNumber, PRESETS, preset, labels, COLORS, graphData, htmlLegendPlugin} = options
-    console.log(options)
-    return <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box}`}>
+export const GraphBox = React.memo(({preProcessor, excludeFunc, goLeftFunc, goRightFunc,
+                                        setGraphDisplayPercentage, isGraphDisplayPercentage, chartPointNumber,
+                                        chartPointNumberRef, setChartPointNumber, PRESETS, preset, labels, COLORS, graphData, htmlLegendPlugin
+                         }) =>
+    <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box}`}>
         <div
             className={`m-0 card-header text-center fw-bold row justify-content-end align-items-center ${utilStyles.text_darkblue}`}>
-            <button className="col-auto btn btn-primary me-2" onClick={() => setGraphDisplayPercentage(!isGraphDisplayPercentage)}>
+            <button className="col-auto btn btn-primary me-2"
+                    onClick={() => setGraphDisplayPercentage(!isGraphDisplayPercentage)}>
                 {isGraphDisplayPercentage ? 'Percentage' : 'Plain'}
             </button>
-            <input type="number" className={`col-auto form-control ${styles.chartInput}`} defaultValue={chartPointNumber}
+            <input type="number" className={`col-auto form-control ${styles.chartInput}`}
+                   defaultValue={chartPointNumber}
                    ref={chartPointNumberRef}
                    onChange={e => {
                        setChartPointNumber(parseInt(e.target.value))
@@ -111,12 +112,11 @@ export const GraphBox = ({preProcessor, excludeFunc, goLeftFunc, goRightFunc,
             <button className="btn btn-secondary me-1" onClick={goLeftFunc}>◀</button>
             <button className="btn btn-secondary ms-1" onClick={goRightFunc}>▶</button>
         </div>
-    </div>;
-}
+    </div>)
 
 export const TableBox = ({graphData, PRESETS, preset}) => <div className={`m-0 card shadow-sm p-0 ${styles.tableBox}`}>
-    <div className="card-header fw-bold text-center d-flex align-items-center">
-        <h5 className="m-0 w-100">Table view</h5>
+    <div className="card-header fw-bold text-center d-flex align-items-center p-1">
+        <span className="m-0 w-100">Table view</span>
         <CsvDownload className="btn btn-success" data={graphData.map(e => {
             const {__typename, ...filtered} = e;
             return filtered
@@ -136,9 +136,9 @@ const DataTable = ({graphData, PRESETS, preset}) => {
             const _t = new Date(DATETIME)
             const TimeString = `${_t.getFullYear()}/${_t.getMonth()+1}/${_t.getDate()} ${_t.toTimeString().split(' ')[0]}`
             return <tr key={`tableRow${i++}`}>
-                <td>{HULLNUM}</td>
-                <td>{TimeString}</td>
-                {Object.keys(DATA).map(e => <td key={`TableColumn${j++}`}>{DATA[e] ? DATA[e] : ''}</td>)}
+                <td className="p-1">{HULLNUM}</td>
+                <td className="p-1">{TimeString}</td>
+                {Object.keys(DATA).map(e => <td className="p-1" key={`TableColumn${j++}`}>{DATA[e] ? DATA[e] : ''}</td>)}
             </tr>
         });
     }
@@ -194,8 +194,8 @@ const TimePicker = ({setTime, timeState, flag, setFlag}) => {
                 <li key={`start_time_item_${e}`}>
                     <small className="dropdown-item" onClick={() => {
                         setFlag(!flag)
-                        setTime(({mm}) => ({hh: e < 10 ? '0' + e : String(e), mm}));
-                    }}>{e}:{timeState.mm}</small>
+                        setTime(({mm}) => ({hh: e < 10 ? '0' + e : String(e), mm: '00'}));
+                    }}>{e}:00</small>
                 </li>
             )) : [...Array(60).keys()].map(e => (
                 <li key={`start_time_item_${e}`}>
