@@ -3,7 +3,7 @@ import utilStyles from "../styles/utils.module.css";
 import {Chart} from "react-chartjs-2";
 import CsvDownload from "react-json-to-csv";
 import DatePicker from "react-datepicker";
-import {forwardRef} from "react";
+import {forwardRef, useEffect, useState} from "react";
 import React from "react";
 
 export const SettingBar = ({options}) => {
@@ -54,11 +54,12 @@ export const SettingBar = ({options}) => {
     </div>;
 }
 
-export const GraphBox = React.memo(({preProcessor, excludeFunc, goLeftFunc, goRightFunc,
+export const GraphBox = ({ className, preProcessor, excludeFunc, goLeftFunc, goRightFunc, graphRef,
                                         setGraphDisplayPercentage, isGraphDisplayPercentage, chartPointNumber,
-                                        chartPointNumberRef, setChartPointNumber, PRESETS, preset, labels, COLORS, graphData, htmlLegendPlugin
-                         }) =>
-    <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box}`}>
+                                        chartPointNumberRef, setChartPointNumber, PRESETS, preset, labels, COLORS, graphData, selectedColumns
+                         }) => {
+    const dataSets = PRESETS[preset]
+    return <div className={`m-0 card rounded-0 shadow-sm p-0 ${styles.graph_box} ${className}`}>
         <div
             className={`m-0 card-header text-center fw-bold row justify-content-end align-items-center ${utilStyles.text_darkblue}`}>
             <button className="col-auto btn btn-primary me-2"
@@ -75,17 +76,19 @@ export const GraphBox = React.memo(({preProcessor, excludeFunc, goLeftFunc, goRi
         <div className="card-body p-0">
             <Chart
                 type='line'
+                ref={graphRef}
                 data={{
                     // reduce amount of data
                     labels: labels.filter((e, i) => i % Math.ceil(labels.length / chartPointNumber) === 0),
                     // Set datasets from preset value (Custom or Ballasting or Deballasting)
-                    datasets: PRESETS[preset].filter(excludeFunc).map(e => {
+                    datasets: dataSets.filter(excludeFunc).map(e => {
                         return ({
                             label: e,
                             data: isGraphDisplayPercentage ? preProcessor(e) : graphData.filter((_, i) => i % Math.ceil(labels.length / chartPointNumber) === 0).map(g => g ? g[e] : null),
                             fill: false,
                             borderColor: COLORS[e],
-                            tension: 0.1
+                            tension: 0.1,
+                            hidden: preset === 'Custom'
                         });
                     })
                 }}
@@ -105,32 +108,44 @@ export const GraphBox = React.memo(({preProcessor, excludeFunc, goLeftFunc, goRi
                         }
                     }
                 }}
-                plugins={[htmlLegendPlugin]}
             />
         </div>
         <div className="card-footer text-center">
             <button className="btn btn-secondary me-1" onClick={goLeftFunc}>◀</button>
             <button className="btn btn-secondary ms-1" onClick={goRightFunc}>▶</button>
         </div>
-    </div>)
+    </div>;
+}
 
-export const TableBox = ({graphData, PRESETS, preset}) => <div className={`m-0 card shadow-sm p-0 ${styles.tableBox}`}>
-    <div className="card-header fw-bold text-center d-flex align-items-center p-1">
-        <span className="m-0 w-100">Table view</span>
-        <CsvDownload className="btn btn-success" data={graphData.map(e => {
-            const {__typename, ...filtered} = e;
-            return filtered
-        })} children="CSV" filename='shipdata.csv'/>
-    </div>
-    <div className="card-body overflow-scroll p-0">
-        <DataTable graphData={graphData} PRESETS={PRESETS} preset={preset} />
-    </div>
-</div>
+export const TableBox = ({graphData, PRESETS, preset, className}) => {
+    const [page, setPage] = useState(1)
+    return <div className={`m-0 card shadow-sm p-0 ${styles.tableBox} ${className}`}>
+        <div className={`card-header fw-bold text-center d-flex align-items-center p-1`}>
+            <span className="m-0 w-100">Table view</span>
+            <CsvDownload className="btn btn-success" data={graphData.map(e => {
+                const {__typename, ...filtered} = e;
+                return filtered
+            })} children="CSV" filename='shipdata.csv'/>
+        </div>
+        <div className="card-body overflow-scroll p-0">
+            <DataTable graphData={graphData} PRESETS={PRESETS} preset={preset} page={page}/>
+        </div>
+        <div className="card-footer p-1 d-flex justify-content-center align-items-center">
+            <button className="btn p-1 mx-1" onClick={() => page > 1 ? setPage(page-1) : null}>◀</button>
+            <input type="text" pattern="[0-9]" className="text-center" size="1" value={page} onChange={(e) => {
+                const page = parseInt(e.target.value)
+                if (!isNaN(page))
+                    setPage(page);
+            }} />
+            <button className="btn p-1 mx-1" onClick={() => setPage(page+1)}>▶</button>
+        </div>
+    </div>;
+}
 
-const DataTable = ({graphData, PRESETS, preset}) => {
+const DataTable = ({graphData, PRESETS, preset, page}) => {
     const GenerateTableRows = () => {
         let [i, j] = [1, 1]
-        return graphData.map(e => {
+        return graphData.slice((page-1)*30, page*30).map(e => {
             const {HULLNUM, DATETIME, ...DATA} = e
             delete DATA.__typename
             const _t = new Date(DATETIME)

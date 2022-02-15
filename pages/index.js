@@ -53,8 +53,10 @@ export default function Home({redirectToLogin, user}) {
     const [chartPointNumber, setChartPointNumber] = useState(100)
     const [isGraphDisplayPercentage, setGraphDisplayPercentage] = useState(true)
     const [_forceUpdate, forceUpdater] = useState(0)
+    const [selectedColumns, setSelectedColumns] = useState(['HULLNUM', 'DATETIME'])
     const chartPointNumberRef = useRef()
     const htmlLegendRef = useRef()
+    const chartJsInstanceRef = useRef()
 
     useEffect(async () => {
         await modifyOnClick()
@@ -116,48 +118,6 @@ export default function Home({redirectToLogin, user}) {
             return new Array(data.length).fill(0)
         return data.map(d => (d - min) / (max - min) * 100)
     }
-    const htmlLegendPlugin = {
-        id: 'htmlLegend',
-        afterUpdate(chart, args, options) {
-            // const items = chart.options.plugins.legend.labels.generateLabels(chart);
-            // const div = document.createElement('div')
-            // div.className = 'w-100 text-center'
-            // div.setAttribute('role', 'group')
-            // items.forEach(i => {
-            //     chart.setDatasetVisibility(i.datasetIndex, false)
-            //     console.log('update')
-            //
-            //     const btn = document.createElement('input')
-            //     btn.type = 'checkbox'
-            //     btn.id = 'legendBtn' + i.datasetIndex
-            //     btn.className = 'btn-check'
-            //
-            //     const label = document.createElement('label')
-            //     label.className = 'btn p-1 m-1'
-            //     label.setAttribute('for', 'legendBtn' + i.datasetIndex)
-            //     label.innerText = i.text
-            //     label.style.backgroundColor = COLORS[i.text]
-            //     label.style.color = 'white'
-            //     label.style.fontStyle = 'italic'
-            //     label.style.font = 'menu'
-            //     label.style.textDecoration = 'line-through'
-            //
-            //     btn.addEventListener('change', e => {
-            //         // chart.setDatasetVisibility(i.datasetIndex, e.currentTarget.checked);
-            //         i.hidden = e.currentTarget.checked
-            //         chart.update()
-            //         label.style.textDecoration = e.currentTarget.checked ? 'none' : 'line-through'
-            //         console.log(e.currentTarget.checked)
-            //     })
-            //
-            //     div.appendChild(btn)
-            //     div.appendChild(label)
-            // })
-            //
-            // htmlLegendRef.current.innerHTML = ''
-            // htmlLegendRef.current.appendChild(div)
-        }
-    }
 
     // Constraints
     const AllColumns = ['HULLNUM', 'DATETIME', 'AIT_1121', 'AIT_1122', 'AIT_1123', 'AIT_151', 'AIT_251', 'AIT_351', 'AP_LVL_01', 'CT_1111',
@@ -170,7 +130,7 @@ export default function Home({redirectToLogin, user}) {
         'REC3021', 'REC3027', 'REC3028', 'REC3029', 'REC3030', 'REC3031', 'REC3043', 'REC4017', 'REC4018', 'REC4019', 'REC4020',
         'REC4021', 'REC4027', 'REC4028', 'REC4029', 'REC4030', 'REC4031', 'REC4043', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000']
     const PRESETS = {
-        // Custom: AllColumns,
+        Custom: AllColumns,
         Ballasting: ['HULLNUM', 'DATETIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
             'FIT_3211', 'FIT_1131', 'FIT_2131', 'FIT_3131', 'REC1017',
             'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
@@ -189,53 +149,69 @@ export default function Home({redirectToLogin, user}) {
         startDate, setStartDate
     }
 
+    const HTMLLegend = ({chartRef, isChart}) => {
+        console.log('render')
+        return isChart ? <div className="card mt-3">
+            <div className="card-body p-1 text-center" ref={htmlLegendRef}>
+                {chartRef.current.legend.legendItems.map(i => {
+                    const [isVisible, setVisible] = useState(chartRef.current.isDatasetVisible(i.datasetIndex))
+                    return <button className="btn"
+                                   style={{backgroundColor: isVisible ? i.strokeStyle : '#999', color: 'white', margin: '2px', font: 'menu'}}
+                                   onClick={() => {
+                                       chartRef.current.setDatasetVisibility(i.datasetIndex, !isVisible);
+                                       chartRef.current.update()
+                                       setVisible(chartRef.current.isDatasetVisible(i.datasetIndex))
+                                   }}>{i.text}</button>;
+                })}
+            </div>
+        </div> : <></>
+    }
+
     return (
         <Layout user={user}>
             <Head>
                 <title>{siteTitle}</title>
             </Head>
-            <SettingBar options={SETTING_BAR_PROPS}/>
-            <div className="card mb-3">
-                <div className="card-body p-1" ref={htmlLegendRef}>
-                </div>
-            </div>
-            {isTable ? <TableBox graphData={graphData} PRESETS={PRESETS} preset={preset}/> :
-                <GraphBox preProcessor={getGraphDataInPercentage}
-                          goLeftFunc={async () => {
-                              parseInt(startTime.hh) > 0 ? setStartTime({
-                                  hh: (parseInt(startTime.hh) - 1).toString(),
-                                  mm: startTime.mm
-                              }) : null
-                              parseInt(endTime.hh) > 1 ? setEndTime({
-                                  hh: (parseInt(endTime.hh) - 1).toString(),
-                                  mm: endTime.mm
-                              }) : null
-                              forceUpdater(_forceUpdate + 1)
-                          }}
-                          goRightFunc={async () => {
-                              parseInt(startTime.hh) < 22 ? setStartTime({
-                                  hh: (parseInt(startTime.hh) + 1).toString(),
-                                  mm: startTime.mm
-                              }) : null
-                              parseInt(endTime.hh) < 23 ? setEndTime({
-                                  hh: (parseInt(endTime.hh) + 1).toString(),
-                                  mm: endTime.mm
-                              }) : null
-                              forceUpdater(_forceUpdate + 1)
-                          }}
-                          excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'}
-                          setGraphDisplayPercentage={setGraphDisplayPercentage}
-                          isGraphDisplayPercentage={isGraphDisplayPercentage}
-                          chartPointNumber={chartPointNumber}
-                          chartPointNumberRef={chartPointNumberRef}
-                          setChartPointNumber={setChartPointNumber}
-                          PRESETS={PRESETS}
-                          preset={preset}
-                          labels={labels}
-                          COLORS={COLORS}
-                          graphData={graphData}
-                          htmlLegendPlugin={htmlLegendPlugin}
-                />}
+            <SettingBar options={SETTING_BAR_PROPS} />
+            <TableBox className={isTable ? '' : 'd-none'} graphData={graphData} PRESETS={PRESETS} preset={preset}/>
+            <GraphBox className={!isTable ? '' : 'd-none'} preProcessor={getGraphDataInPercentage}
+                      graphRef={chartJsInstanceRef}
+                      goLeftFunc={async () => {
+                          parseInt(startTime.hh) > 0 ? setStartTime({
+                              hh: (parseInt(startTime.hh) - 1).toString(),
+                              mm: startTime.mm
+                          }) : null
+                          parseInt(endTime.hh) > 1 ? setEndTime({
+                              hh: (parseInt(endTime.hh) - 1).toString(),
+                              mm: endTime.mm
+                          }) : null
+                          forceUpdater(_forceUpdate + 1)
+                      }}
+                      goRightFunc={async () => {
+                          parseInt(startTime.hh) < 22 ? setStartTime({
+                              hh: (parseInt(startTime.hh) + 1).toString(),
+                              mm: startTime.mm
+                          }) : null
+                          parseInt(endTime.hh) < 23 ? setEndTime({
+                              hh: (parseInt(endTime.hh) + 1).toString(),
+                              mm: endTime.mm
+                          }) : null
+                          forceUpdater(_forceUpdate + 1)
+                      }}
+                      excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'}
+                      setGraphDisplayPercentage={setGraphDisplayPercentage}
+                      isGraphDisplayPercentage={isGraphDisplayPercentage}
+                      chartPointNumber={chartPointNumber}
+                      chartPointNumberRef={chartPointNumberRef}
+                      setChartPointNumber={setChartPointNumber}
+                      PRESETS={PRESETS}
+                      preset={preset}
+                      labels={labels}
+                      COLORS={COLORS}
+                      graphData={graphData}
+                      selectedColumns={selectedColumns.filter(c => c !== 'HULLNUM' && c !== 'DATETIME')}
+            />
+            <HTMLLegend chartRef={chartJsInstanceRef} isChart={!isTable} preset={preset} />
         </Layout>
     )
 }

@@ -3,10 +3,11 @@ import Sidebar from "./sidebar";
 import Header from "./header";
 import Footer from "./footer";
 import patternBg from '../public/45-degree-fabric-light.png'
+import React from "react";
 
 export const siteTitle = 'HiQ-WS'
 
-export default function Layout({ children, user }) {
+function Layout({ children, user }) {
     return (
         <div className={`container-fluid d-flex flex-column vh-100 bg-dark ${styles.layoutBody}`} style={{backgroundImage: `url(${patternBg.src})`}} >
             <Header className='row' />
@@ -20,3 +21,5 @@ export default function Layout({ children, user }) {
         </div>
     )
 }
+
+export default React.memo(Layout)
