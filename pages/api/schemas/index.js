@@ -4,7 +4,7 @@ export const typeDefs = gql`
     scalar Date
     type Graph {
         HULLNUM: Int!,
-        DATETIME: Date!,
+        TIME: Date!,
         AIT_1121: Int,
         AIT_1122: Int,
         AIT_1123: Int,

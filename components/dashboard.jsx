@@ -146,9 +146,9 @@ const DataTable = ({graphData, PRESETS, preset, page}) => {
     const GenerateTableRows = () => {
         let [i, j] = [1, 1]
         return graphData.slice((page-1)*30, page*30).map(e => {
-            const {HULLNUM, DATETIME, ...DATA} = e
+            const {HULLNUM, TIME, ...DATA} = e
             delete DATA.__typename
-            const _t = new Date(DATETIME)
+            const _t = new Date(TIME)
             const TimeString = `${_t.getFullYear()}/${_t.getMonth()+1}/${_t.getDate()} ${_t.toTimeString().split(' ')[0]}`
             return <tr key={`tableRow${i++}`}>
                 <td className="p-1">{HULLNUM}</td>

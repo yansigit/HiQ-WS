@@ -31,7 +31,7 @@ export const resolvers = {
             const query = DBConnector.getInstance.table("SHIPDATA_MASTER_FORM")
                 .where('HULLNUM', hullNum)
                 .whereRaw(whereDict[preset])
-                .whereRaw('DATETIME between TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\') and TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\')', [startTime, endTime])
+                .whereRaw('TIME between TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\') and TO_DATE(?, \'YYYY-MM-DD HH24:mi:ss\')', [startTime, endTime])
                 .select()
             const result = await query
             // console.log(query.toQuery())

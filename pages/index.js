@@ -53,7 +53,7 @@ export default function Home({redirectToLogin, user}) {
     const [chartPointNumber, setChartPointNumber] = useState(100)
     const [isGraphDisplayPercentage, setGraphDisplayPercentage] = useState(true)
     const [_forceUpdate, forceUpdater] = useState(0)
-    const [selectedColumns, setSelectedColumns] = useState(['HULLNUM', 'DATETIME'])
+    const [selectedColumns, setSelectedColumns] = useState(['HULLNUM', 'TIME'])
     const chartPointNumberRef = useRef()
     const htmlLegendRef = useRef()
     const chartJsInstanceRef = useRef()
@@ -100,7 +100,7 @@ export default function Home({redirectToLogin, user}) {
             getGraphs = []
 
         setGraphData(getGraphs)
-        setLabels(getGraphs.map(g => new Date(g.DATETIME).toTimeString().split(' ')[0]))
+        setLabels(getGraphs.map(g => new Date(g.TIME).toTimeString().split(' ')[0]))
     }
     const getGraphDataInPercentage = (e) => {
         // 1. reduce dataset and append the latest data
@@ -120,7 +120,7 @@ export default function Home({redirectToLogin, user}) {
     }
 
     // Constraints
-    const AllColumns = ['HULLNUM', 'DATETIME', 'AIT_1121', 'AIT_1122', 'AIT_1123', 'AIT_151', 'AIT_251', 'AIT_351', 'AP_LVL_01', 'CT_1111',
+    const AllColumns = ['HULLNUM', 'TIME', 'AIT_1121', 'AIT_1122', 'AIT_1123', 'AIT_151', 'AIT_251', 'AIT_351', 'AP_LVL_01', 'CT_1111',
         'CT_1751', 'FCV_1131_CMD', 'FCV_1131_FD', 'FCV_1211_CMD', 'FCV_1211_FD', 'FCV_1751_CMD', 'FCV_1751_FD', 'FCV_3131_CMD',
         'FCV_3131_FD', 'FCV_3211_CMD', 'FCV_3211_FD', 'FIT_1131', 'FIT_1211', 'FIT_2131', 'FIT_2211', 'FIT_3131', 'FIT_3211',
         'GPS_LAT', 'GPS_LON', 'LIT_1311', 'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211', 'PIT_3212', 'PT_1121', 'PT_1721',
@@ -131,12 +131,12 @@ export default function Home({redirectToLogin, user}) {
         'REC4021', 'REC4027', 'REC4028', 'REC4029', 'REC4030', 'REC4031', 'REC4043', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000']
     const PRESETS = {
         Custom: AllColumns,
-        Ballasting: ['HULLNUM', 'DATETIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
+        Ballasting: ['HULLNUM', 'TIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211',
             'FIT_3211', 'FIT_1131', 'FIT_2131', 'FIT_3131', 'REC1017',
             'REC1018', 'REC2017', 'REC2018', 'REC3017', 'REC3018', 'REC4017', 'REC4018',
             'PIT_1211', 'PIT_1212', 'PIT_2211', 'PIT_2212', 'PIT_3211',
             'PIT_3212', 'CT_1111', 'TE_1111', 'REC1000', 'REC2000', 'REC3000', 'REC4000'],
-        Deballasting: ['HULLNUM', 'DATETIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
+        Deballasting: ['HULLNUM', 'TIME', 'AIT_151', 'AIT_251', 'AIT_351', 'FIT_1211', 'FIT_2211', 'FIT_3211', 'LIT_1311', 'P_132_FD', 'P_232_FD', 'P_332_FD'],
     }
     const [COLORS, _] = useState(AllColumns.reduce((o, key) => ({
         ...o,
@@ -198,7 +198,7 @@ export default function Home({redirectToLogin, user}) {
                           }) : null
                           forceUpdater(_forceUpdate + 1)
                       }}
-                      excludeFunc={e => e !== 'HULLNUM' && e !== 'DATETIME'}
+                      excludeFunc={e => e !== 'HULLNUM' && e !== 'TIME'}
                       setGraphDisplayPercentage={setGraphDisplayPercentage}
                       isGraphDisplayPercentage={isGraphDisplayPercentage}
                       chartPointNumber={chartPointNumber}
@@ -209,7 +209,7 @@ export default function Home({redirectToLogin, user}) {
                       labels={labels}
                       COLORS={COLORS}
                       graphData={graphData}
-                      selectedColumns={selectedColumns.filter(c => c !== 'HULLNUM' && c !== 'DATETIME')}
+                      selectedColumns={selectedColumns.filter(c => c !== 'HULLNUM' && c !== 'TIME')}
             />
             <HTMLLegend chartRef={chartJsInstanceRef} isChart={!isTable} preset={preset} />
         </Layout>
